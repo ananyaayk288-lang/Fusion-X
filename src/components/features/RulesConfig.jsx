@@ -48,7 +48,7 @@ export default function RulesConfig() {
     };
 
     return (
-        <div className="rules-config-container animate-enter" style={{ color: 'var(--text-primary)', padding: '1.5rem 0.5rem', backgroundColor: '#030712' }}>
+        <div className="rules-config-container animate-enter" style={{ color: 'var(--text-primary)', padding: '1.5rem 0.5rem', backgroundColor: 'var(--bg-app-background)' }}>
             
             {/* Header Banner */}
             <div className="lms-title-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -215,7 +215,7 @@ export default function RulesConfig() {
                                     <span style={{ color: '#888' }}>Compiling & Syncing Edge Memory Maps...</span>
                                     <span style={{ color: '#7c3aed', fontWeight: 'bold' }}>{saveProgress}%</span>
                                 </div>
-                                <div style={{ height: '6px', background: '#111827', borderRadius: '3px', overflow: 'hidden' }}>
+                                <div style={{ height: '6px', background: 'var(--bg-secondary)', borderRadius: '3px', overflow: 'hidden' }}>
                                     <div style={{ height: '100%', width: `${saveProgress}%`, background: '#7c3aed', transition: 'width 0.2s' }} />
                                 </div>
                             </div>
@@ -255,12 +255,12 @@ export default function RulesConfig() {
                                     Configuration Sync Log
                                 </span>
                                 <div style={{ 
-                                    background: '#040711', 
+                                    background: 'var(--bg-secondary)', 
                                     padding: '8px', 
                                     borderRadius: '6px', 
                                     fontFamily: 'monospace', 
                                     fontSize: '0.65rem', 
-                                    color: '#7c3aed',
+                                    color: 'var(--accent-secondary)',
                                     maxHeight: '110px',
                                     overflowY: 'auto',
                                     display: 'flex',
@@ -303,7 +303,7 @@ const panelHeaderStyle = {
 
 const sliderRowStyle = {
     marginBottom: '1.5rem',
-    borderBottom: '1px solid rgba(255,255,255,0.02)',
+    borderBottom: '1px solid var(--border-color)',
     paddingBottom: '1.25rem'
 };
 
@@ -321,7 +321,7 @@ const sliderValueStyle = {
 
 const sliderDescStyle = {
     fontSize: '0.72rem',
-    color: '#888',
+    color: 'var(--text-secondary)',
     lineHeight: 1.4,
     marginBottom: '8px',
     marginTop: '2px'
@@ -329,8 +329,8 @@ const sliderDescStyle = {
 
 const rangeInputStyle = {
     width: '100%',
-    accentColor: '#7c3aed',
-    background: '#111827',
+    accentColor: 'var(--accent-secondary)',
+    background: 'var(--border-color)',
     height: '6px',
     borderRadius: '3px',
     outline: 'none',
@@ -341,8 +341,8 @@ const toggleRowStyle = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    background: 'rgba(255,255,255,0.01)',
-    border: '1px solid rgba(255,255,255,0.03)',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--border-color)',
     padding: '10px',
     borderRadius: '8px'
 };
@@ -355,7 +355,7 @@ const toggleTitleStyle = {
 
 const toggleDescStyle = {
     fontSize: '0.68rem',
-    color: '#888',
+    color: 'var(--text-secondary)',
     marginTop: '2px',
     lineHeight: 1.3
 };
