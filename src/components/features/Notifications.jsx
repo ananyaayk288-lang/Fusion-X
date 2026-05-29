@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { mockBackend } from '../../services/mockBackend';
 import { createClient } from '../../utils/supabase/client';
 import { useAuth } from '../../context/AuthContext';
@@ -8,7 +8,7 @@ import './FeatureStyles.css';
 
 const NotificationsPage = () => {
     const { user } = useAuth();
-    const supabase = createClient();
+    const supabase = useMemo(() => createClient(), []);
     
     const [supabaseNotifications, setSupabaseNotifications] = useState([]);
     const [mockNotifs, setMockNotifs] = useState(mockBackend.notifications || []);
