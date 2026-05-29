@@ -13,7 +13,7 @@ import './FeatureStyles.css';
 
 const ParentDashboard = () => {
     const { user } = useAuth();
-    const supabase = createClient();
+    const supabase = useMemo(() => createClient(), []);
 
     // Component states
     const [loading, setLoading] = useState(true);
