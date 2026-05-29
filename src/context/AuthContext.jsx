@@ -210,7 +210,9 @@ export const AuthProvider = ({ children }) => {
                 id: '00000000-0000-0000-0000-000000000004',
                 name: 'bhavana',
                 email: 'bhav@vvce',
-                role: 'teacher'
+                role: 'teacher',
+                isClassTeacher: true,
+                assignedSection: 'ECE-2A'
             };
             setMockCookie(mockUser);
             setAccessToken('mock-token-bhav');
@@ -274,7 +276,9 @@ export const AuthProvider = ({ children }) => {
                 _id: 'mock-teacher-id',
                 name: 'Demo Teacher',
                 email: 'teacher@college.edu',
-                role: 'teacher'
+                role: 'teacher',
+                isClassTeacher: true,
+                assignedSection: 'ECE-2A'
             };
             setMockCookie(mockTeacher);
             setAccessToken('mock-token-teacher');
@@ -338,7 +342,9 @@ export const AuthProvider = ({ children }) => {
                     name: mockResult.user.name,
                     email: mockResult.user.email,
                     role: mockResult.user.role,
-                    usn: '4VV25EC032'
+                    usn: '4VV25EC032',
+                    isClassTeacher: mockResult.user.isClassTeacher || false,
+                    assignedSection: mockResult.user.assignedSection || null
                 };
                 setMockCookie(userData);
                 setAccessToken(mockResult.token);

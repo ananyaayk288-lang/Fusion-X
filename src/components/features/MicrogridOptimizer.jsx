@@ -56,7 +56,7 @@ export default function MicrogridOptimizer() {
     };
 
     return (
-        <div className="microgrid-container animate-enter" style={{ color: 'var(--text-primary)', padding: '1.5rem 0.5rem', backgroundColor: '#030712' }}>
+        <div className="microgrid-container animate-enter" style={{ color: 'var(--text-primary)', padding: '1.5rem 0.5rem', backgroundColor: 'var(--bg-app-background)' }}>
             {/* Header Banner */}
             <div className="lms-title-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <span>VVCE Microgrid Optimizer</span>
@@ -235,7 +235,11 @@ export default function MicrogridOptimizer() {
                             marginTop: '10px', 
                             fontSize: '0.7rem', 
                             fontFamily: 'monospace', 
-                            color: '#63e2b7',
+                            background: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '6px',
+                            padding: '10px',
+                            color: 'var(--text-primary)',
                             maxHeight: '120px',
                             overflowY: 'auto',
                             display: 'flex',
@@ -244,7 +248,7 @@ export default function MicrogridOptimizer() {
                         }}>
                             {log.map((line, i) => (
                                 <div key={i}>
-                                    <span style={{ color: '#888' }}>[{line.time}]</span> {line.text}
+                                    <span style={{ color: 'var(--text-secondary)' }}>[{line.time}]</span> {line.text}
                                 </div>
                             ))}
                         </div>

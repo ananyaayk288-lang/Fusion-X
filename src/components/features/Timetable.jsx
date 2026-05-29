@@ -67,8 +67,8 @@ const Timetable = () => {
             {/* Tab Launcher Bar */}
             <div className="tt-tab-bar" style={{
                 display: 'flex',
-                background: '#1a1a1a',
-                border: '1px solid #444',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
                 marginBottom: '2rem',
                 borderRadius: '4px',
                 overflow: 'hidden'
@@ -82,13 +82,13 @@ const Timetable = () => {
                             padding: '12px 0',
                             border: 'none',
                             background: activeTab === tab ? '#ff9800' : 'transparent',
-                            color: activeTab === tab ? '#000' : '#888',
+                            color: activeTab === tab ? '#000' : 'var(--text-secondary)',
                             fontWeight: '800',
                             cursor: 'pointer',
                             fontSize: '0.9rem',
                             letterSpacing: '1px',
                             transition: 'all 0.2s',
-                            borderRight: tab !== 'TODO' ? '1px solid #444' : 'none',
+                            borderRight: tab !== 'TODO' ? '1px solid var(--border-color)' : 'none',
                             textTransform: 'uppercase'
                         }}
                     >
@@ -236,19 +236,19 @@ const Timetable = () => {
                         .tt-table-wrapper {
                             margin: 0;
                             width: 100%;
-                            background: #000;
-                            border: 2px solid #fff;
-                            box-shadow: 10px 10px 0px rgba(255, 255, 255, 0.1);
-                            overflow-y: visible !important;
-                            overflow-x: visible !important;
-                            height: auto !important;
-                            flex: none !important;
+                            background: var(--bg-app-background);
+                            border: 2px solid var(--border-color);
+                            box-shadow: 10px 10px 0px var(--shadow-hard);
                         }
                         .tt-excel-table {
                             width: 100%;
                             border-collapse: collapse;
                             table-layout: fixed;
                         }
+                        .tt-corner-header, .tt-period-header, .tt-day-cell {
+                            background: var(--bg-card) !important;
+                            color: var(--text-primary) !important;
+                            border: 1px solid var(--border-color) !important;
                         .tt-corner-header, .tt-period-header {
                             background: #111 !important;
                             color: #fff !important;
@@ -273,6 +273,8 @@ const Timetable = () => {
                             font-size: 0.9rem;
                         }
                         .tt-cell {
+                            height: 48px; /* Ultra-compact for single page */
+                            border: 1px solid var(--border-color) !important;
                             height: 50px; /* Vertically small cells */
                             border: 1px solid #333 !important;
                         }
@@ -300,10 +302,12 @@ const Timetable = () => {
                             color: #444;
                         }
                         .tt-separator-cell {
-                            background: #000 !important;
+                            background: var(--bg-secondary) !important;
                             color: #fbbf24 !important;
                             font-weight: 900 !important;
                             width: 20px;
+                            border: 1px solid var(--border-color) !important;
+                            font-size: 0.65rem;
                             border: 1px solid #333 !important;
                             font-size: 0.85rem;
                             vertical-align: middle !important;
@@ -315,8 +319,8 @@ const Timetable = () => {
                             gap: 4px 12px;
                             margin-top: 1rem;
                             padding: 0.5rem;
-                            background: #111;
-                            border: 1px solid #333;
+                            background: var(--bg-card);
+                            border: 1px solid var(--border-color);
                         }
                         .tt-legend-item {
                             display: flex;
@@ -324,7 +328,7 @@ const Timetable = () => {
                             gap: 4px;
                             font-size: 0.6rem;
                             font-weight: 700;
-                            color: #888;
+                            color: var(--text-secondary);
                             text-transform: uppercase;
                         }
                         .tt-legend-dot {

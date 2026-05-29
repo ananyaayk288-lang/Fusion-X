@@ -112,23 +112,23 @@ const QuestionPaperGenerator = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                         <h3 style={{ margin: 0, fontSize: '1rem' }}>Questions ({questions.length}) — Total: {totalMarks} marks</h3>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={shuffleQuestions} style={{ ...btn, background: '#333', color: '#ccc' }}><Shuffle size={14} /> Shuffle</button>
+                            <button onClick={shuffleQuestions} style={{ ...btn, background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}><Shuffle size={14} /> Shuffle</button>
                             <button onClick={handlePrint} style={btn}><Printer size={14} /> Print / PDF</button>
                         </div>
                     </div>
                     {questions.map((q, i) => (
-                        <div key={q.id} style={{ display: 'flex', gap: '1rem', padding: '0.75rem 1rem', background: '#0a0a0a', borderRadius: 8, border: '1px solid #222', marginBottom: '0.5rem', alignItems: 'flex-start' }}>
+                        <div key={q.id} style={{ display: 'flex', gap: '1rem', padding: '0.75rem 1rem', background: 'var(--bg-secondary)', borderRadius: 8, border: '1px solid var(--border-color)', marginBottom: '0.5rem', alignItems: 'flex-start' }}>
                             <span style={{ fontWeight: 900, color: '#fbbf24', minWidth: 28 }}>Q{i + 1}.</span>
                             <div style={{ flex: 1 }}>
-                                <p style={{ margin: '0 0 0.5rem', fontSize: '0.9rem', lineHeight: 1.5 }}>{q.text}</p>
+                                <p style={{ margin: '0 0 0.5rem', fontSize: '0.9rem', lineHeight: 1.5, color: 'var(--text-primary)' }}>{q.text}</p>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                                     <span style={tag}>{q.unit}</span>
-                                    <span style={{ ...tag, background: q.difficulty === 'Easy' ? '#064e3b' : q.difficulty === 'Hard' ? '#7f1d1d' : '#78350f', color: q.difficulty === 'Easy' ? '#34d399' : q.difficulty === 'Hard' ? '#f87171' : '#fbbf24' }}>{q.difficulty}</span>
-                                    <span style={{ ...tag, background: '#1e1b4b', color: '#a78bfa' }}>{q.blooms}</span>
+                                    <span style={{ ...tag, background: q.difficulty === 'Easy' ? 'rgba(16, 185, 129, 0.15)' : q.difficulty === 'Hard' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)', color: q.difficulty === 'Easy' ? 'var(--success)' : q.difficulty === 'Hard' ? 'var(--error)' : 'var(--accent-action)' }}>{q.difficulty}</span>
+                                    <span style={{ ...tag, background: 'rgba(124, 58, 237, 0.15)', color: 'var(--accent-secondary)' }}>{q.blooms}</span>
                                     <span style={tag}>{q.marks} marks</span>
                                 </div>
                             </div>
-                            <button onClick={() => removeQuestion(q.id)} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', padding: 4 }}><Trash2 size={16} /></button>
+                            <button onClick={() => removeQuestion(q.id)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 4 }}><Trash2 size={16} /></button>
                         </div>
                     ))}
                 </div>
@@ -163,9 +163,9 @@ const QuestionPaperGenerator = () => {
 };
 
 const btn = { background: '#fbbf24', color: '#000', border: 'none', padding: '8px 18px', fontWeight: 800, borderRadius: 6, fontSize: '0.8rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' };
-const cardBase = { background: '#111', border: '2px solid #222', borderRadius: 12, padding: '1.5rem' };
-const lbl = { display: 'block', marginBottom: '0.3rem', fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase' };
-const inp = { width: '100%', background: '#0a0a0a', border: '1px solid #333', borderRadius: 8, padding: '0.6rem 0.7rem', color: '#fff', fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' };
-const tag = { padding: '2px 8px', borderRadius: 4, fontSize: '0.65rem', fontWeight: 700, background: '#1a1a2e', color: '#888' };
+const cardBase = { background: 'var(--bg-card)', border: '2px solid var(--border-color)', borderRadius: 12, padding: '1.5rem', color: 'var(--text-primary)' };
+const lbl = { display: 'block', marginBottom: '0.3rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' };
+const inp = { width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.6rem 0.7rem', color: 'var(--text-primary)', fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' };
+const tag = { padding: '2px 8px', borderRadius: 4, fontSize: '0.65rem', fontWeight: 700, background: 'var(--bg-secondary)', color: 'var(--text-secondary)' };
 
 export default QuestionPaperGenerator;

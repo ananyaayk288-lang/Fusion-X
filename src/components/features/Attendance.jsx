@@ -1647,7 +1647,7 @@ const Attendance = () => {
         };
 
         return (
-            <div className="lms-attendance-page animate-enter" style={{ backgroundColor: '#030712', color: 'var(--text-primary)', padding: '1.5rem 0.5rem' }}>
+            <div className="lms-attendance-page animate-enter" style={{ backgroundColor: 'var(--bg-app-background)', color: 'var(--text-primary)', padding: '1.5rem 0.5rem' }}>
                 {/* Header */}
                 <div className="lms-title-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                     <span>AI Footfall & Proxy-Risk Audit</span>

@@ -118,7 +118,7 @@ export default function TelemetryMap() {
     };
 
     return (
-        <div className="telemetry-container animate-enter" style={{ color: 'var(--text-primary)', padding: '1.5rem 0.5rem', backgroundColor: '#030712' }}>
+        <div className="telemetry-container animate-enter" style={{ color: 'var(--text-primary)', padding: '1.5rem 0.5rem', backgroundColor: 'var(--bg-app-background)' }}>
             
             {/* Header Banner */}
             <div className="lms-title-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -129,7 +129,7 @@ export default function TelemetryMap() {
             </div>
 
             {/* Network Sweep Command Panel */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(31, 41, 55, 0.3)', border: '2px solid var(--border-color)', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)', border: '2px solid var(--border-color)', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem' }}>
                 <div>
                     <h3 style={{ fontSize: '0.95rem', fontWeight: 800 }}>Institutional Mesh Status</h3>
                     <p style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>
@@ -170,7 +170,7 @@ export default function TelemetryMap() {
                         Click glowing hardware anchors to view real-time diagnostics and coordinate ping triggers.
                     </p>
 
-                    <div style={{ position: 'relative', width: '100%', height: '340px', background: '#0b0f19', borderRadius: '10px', overflow: 'hidden', border: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ position: 'relative', width: '100%', height: '340px', background: 'var(--bg-secondary)', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <svg viewBox="0 0 600 350" style={{ width: '100%', height: '100%', padding: '20px' }}>
                             {/* Grid Backdrop */}
                             <defs>
@@ -185,16 +185,16 @@ export default function TelemetryMap() {
                             <path d="M 200 0 L 200 350" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="16" fill="none" strokeLinecap="round" />
 
                             {/* Building 1: Administrative Block */}
-                            <rect x="30" y="30" width="120" height="90" rx="6" fill="#111827" stroke="#1f2937" strokeWidth="2" />
-                            <text x="90" y="80" fill="#4b5563" fontSize="10" fontWeight="bold" textAnchor="middle">ADMIN BLOCK</text>
+                            <rect x="30" y="30" width="120" height="90" rx="6" fill="var(--bg-primary)" stroke="var(--border-color)" strokeWidth="2" />
+                            <text x="90" y="80" fill="var(--text-secondary)" fontSize="10" fontWeight="bold" textAnchor="middle">ADMIN BLOCK</text>
 
                             {/* Building 2: Science Block (CSE/ECE) */}
-                            <rect x="250" y="30" width="180" height="100" rx="6" fill="#111827" stroke="#1f2937" strokeWidth="2" />
-                            <text x="340" y="85" fill="#4b5563" fontSize="10" fontWeight="bold" textAnchor="middle">SCIENCE BLOCK (CSE/ECE)</text>
+                            <rect x="250" y="30" width="180" height="100" rx="6" fill="var(--bg-primary)" stroke="var(--border-color)" strokeWidth="2" />
+                            <text x="340" y="85" fill="var(--text-secondary)" fontSize="10" fontWeight="bold" textAnchor="middle">SCIENCE BLOCK (CSE/ECE)</text>
 
                             {/* Building 3: Central Library */}
-                            <rect x="30" y="220" width="130" height="100" rx="6" fill="#111827" stroke="#1f2937" strokeWidth="2" />
-                            <text x="95" y="275" fill="#4b5563" fontSize="10" fontWeight="bold" textAnchor="middle">CENTRAL LIBRARY</text>
+                            <rect x="30" y="220" width="130" height="100" rx="6" fill="var(--bg-primary)" stroke="var(--border-color)" strokeWidth="2" />
+                            <text x="95" y="275" fill="var(--text-secondary)" fontSize="10" fontWeight="bold" textAnchor="middle">CENTRAL LIBRARY</text>
 
                             {/* Building 4: Solar Park Array */}
                             <rect x="440" y="210" width="130" height="100" rx="6" fill="#0d1f14" stroke="#14532d" strokeWidth="2" />
@@ -325,13 +325,13 @@ export default function TelemetryMap() {
                         </div>
 
                         <div style={{ 
-                            background: '#040711',
-                            border: '1px solid #1e293b',
+                            background: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-color)',
                             borderRadius: '6px',
                             padding: '10px', 
                             fontSize: '0.7rem', 
                             fontFamily: 'monospace', 
-                            color: '#10b981',
+                            color: 'var(--text-primary)',
                             height: '140px',
                             overflowY: 'auto',
                             display: 'flex',
@@ -340,8 +340,8 @@ export default function TelemetryMap() {
                         }}>
                             {terminalLogs.map((line, i) => (
                                 <div key={i}>
-                                    <span style={{ color: '#555' }}>[{line.time}]</span>{' '}
-                                    <span style={{ color: line.type === 'error' ? '#ef4444' : line.type === 'warning' ? '#f59e0b' : line.type === 'success' ? '#10b981' : '#60a5fa' }}>
+                                    <span style={{ color: 'var(--text-secondary)' }}>[{line.time}]</span>{' '}
+                                    <span style={{ color: line.type === 'error' ? 'var(--error)' : line.type === 'warning' ? 'var(--accent-action)' : line.type === 'success' ? 'var(--success)' : 'var(--accent-primary)' }}>
                                         {line.text}
                                     </span>
                                 </div>

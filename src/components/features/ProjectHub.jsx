@@ -225,7 +225,7 @@ const ProjectHub = () => {
         };
 
         return (
-            <div className="telemetry-container animate-enter" style={{ color: 'var(--text-primary)', padding: '1.5rem 0.5rem', backgroundColor: '#030712' }}>
+            <div className="telemetry-container animate-enter" style={{ color: 'var(--text-primary)', padding: '1.5rem 0.5rem', backgroundColor: 'var(--bg-app-background)' }}>
                 {/* Title */}
                 <div className="lms-title-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                     <span>Tech & Innovation Registry</span>
@@ -475,7 +475,7 @@ const ProjectHub = () => {
                                     <h4 style={sectionTitle}><CheckCircle2 size={16} /> Milestones</h4>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                         {proj.milestones.map((ms, i) => (
-                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', background: '#0a0a0a', borderRadius: 8, border: '1px solid #222' }}>
+                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', background: 'var(--bg-secondary)', borderRadius: 8, border: '1px solid var(--border-color)' }}>
                                                 <span style={{ color: statusConfig[ms.status].color }}>{statusConfig[ms.status].icon}</span>
                                                 <span style={{ flex: 1, fontWeight: 600, fontSize: '0.85rem' }}>{ms.title}</span>
                                                 <span style={{ fontSize: '0.75rem', color: '#666' }}>{ms.date}</span>
@@ -608,14 +608,14 @@ const ProjectHub = () => {
 
 // --- Inline Styles ---
 const btnPrimary = { background: '#fbbf24', color: '#000', border: 'none', padding: '8px 20px', fontWeight: 800, borderRadius: 6, fontSize: '0.8rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' };
-const cardBase = { background: '#111', border: '2px solid #222', borderRadius: 12, padding: '1.5rem', transition: 'border-color 0.2s' };
-const statCard = { background: '#111', border: '2px solid #333', padding: '1.25rem', borderRadius: 12, display: 'flex', flexDirection: 'column' };
+const cardBase = { background: 'var(--bg-card)', border: '2px solid var(--border-color)', borderRadius: 12, padding: '1.5rem', transition: 'border-color 0.2s', color: 'var(--text-primary)' };
+const statCard = { background: 'var(--bg-card)', border: '2px solid var(--border-color)', padding: '1.25rem', borderRadius: 12, display: 'flex', flexDirection: 'column', color: 'var(--text-primary)' };
 const pill = { padding: '3px 10px', borderRadius: 20, fontSize: '0.7rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' };
-const sectionTitle = { margin: '0 0 0.75rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ccc' };
-const memberChip = { display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 1rem', background: '#0a0a0a', borderRadius: 10, border: '1px solid #222' };
+const sectionTitle = { margin: '0 0 0.75rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' };
+const memberChip = { display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 1rem', background: 'var(--bg-secondary)', borderRadius: 10, border: '1px solid var(--border-color)', color: 'var(--text-primary)' };
 const modalOverlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 };
-const modalBox = { background: '#111', border: '2px solid #333', borderRadius: 16, padding: '2rem', width: '90%', maxWidth: 560, maxHeight: '85vh', overflowY: 'auto' };
-const labelStyle = { display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', fontWeight: 700, color: '#aaa', textTransform: 'uppercase' };
-const inputStyle = { width: '100%', background: '#0a0a0a', border: '1px solid #333', borderRadius: 8, padding: '0.65rem 0.75rem', color: '#fff', fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' };
+const modalBox = { background: 'var(--bg-card)', border: '2px solid var(--border-color)', borderRadius: 16, padding: '2rem', width: '90%', maxWidth: 560, maxHeight: '85vh', overflowY: 'auto', color: 'var(--text-primary)' };
+const labelStyle = { display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' };
+const inputStyle = { width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.65rem 0.75rem', color: 'var(--text-primary)', fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' };
 
 export default ProjectHub;

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { createClient } from '../../utils/supabase/client';
+import { mockBackend } from '../../services/mockBackend';
 import { 
     Users, Activity, Wallet, Bell, 
     TrendingUp, User, Home, BookOpen, 
@@ -30,6 +31,59 @@ const ParentDashboard = () => {
     const [attendancePct, setAttendancePct] = useState(92);
     const [attendanceCount, setAttendanceCount] = useState({ present: 23, total: 25 });
     
+    // Parent warning electronic signature lockout states
+    const [signatureName, setSignatureName] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
+    const [compulsoryRemarks, setCompulsoryRemarks] = useState(mockBackend.compulsoryRemarks);
+
+    // Event listener for backend updates
+    useEffect(() => {
+        const handleBackendUpdate = () => {
+            setCompulsoryRemarks([...mockBackend.compulsoryRemarks]);
+        };
+        if (typeof window !== 'undefined') {
+            window.addEventListener('mock-backend-update', handleBackendUpdate);
+        }
+        return () => {
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('mock-backend-update', handleBackendUpdate);
+            }
+        };
+    }, []);
+
+    const activeChildId = user?.childId || '00000000-0000-0000-0000-000000000002'; // default to bp@vvce
+    const parentEmailNormalized = (user?.email || '').toLowerCase().trim();
+
+    const activeCriticalRemark = useMemo(() => {
+        return compulsoryRemarks.find(rem => 
+            rem.priority === 'critical' && 
+            !rem.isAcknowledged && 
+            (rem.studentId === activeChildId || (rem.parentEmail || '').toLowerCase().trim() === parentEmailNormalized)
+        );
+    }, [compulsoryRemarks, activeChildId, parentEmailNormalized]);
+
+    const handleAcknowledgeAndSign = (remarkId) => {
+        if (!signatureName.trim()) {
+            setErrorMsg('Please input your signature to sign off.');
+            return;
+        }
+
+        const result = mockBackend.acknowledgeRemark(remarkId, signatureName);
+        if (result.success) {
+            // Trigger local sync
+            setCompulsoryRemarks([...mockBackend.compulsoryRemarks]);
+            setSignatureName('');
+            setErrorMsg('');
+            
+            // Dispatch event for other components (e.g., DashboardHome) to refresh
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new Event('mock-backend-update'));
+            }
+        } else {
+            setErrorMsg(result.error || 'Failed to sign the remark.');
+        }
+    };
+
     // Lists fetched from Supabase
     const [timetables, setTimetables] = useState([]);
     const [exams, setExams] = useState([]);
@@ -149,21 +203,22 @@ const ParentDashboard = () => {
         fetchChildData();
 
         // Subscribe to real-time updates for parent queries
-        const channel = supabase
-            .channel('parent_realtime_feed')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance' }, () => {
-                fetchChildData();
-            })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'exams' }, () => {
-                fetchChildData();
-            })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'quizzes' }, () => {
-                fetchChildData();
-            })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'notices' }, () => {
-                fetchChildData();
-            })
-            .subscribe();
+        const channel = supabase.channel('parent_realtime_feed');
+        
+        channel.on('postgres_changes', { event: '*', schema: 'public', table: 'attendance' }, () => {
+            fetchChildData();
+        });
+        channel.on('postgres_changes', { event: '*', schema: 'public', table: 'exams' }, () => {
+            fetchChildData();
+        });
+        channel.on('postgres_changes', { event: '*', schema: 'public', table: 'quizzes' }, () => {
+            fetchChildData();
+        });
+        channel.on('postgres_changes', { event: '*', schema: 'public', table: 'notices' }, () => {
+            fetchChildData();
+        });
+        
+        channel.subscribe();
 
         return () => {
             supabase.removeChannel(channel);
@@ -185,7 +240,159 @@ const ParentDashboard = () => {
     }
 
     return (
-        <div className="parent-dashboard-container">
+        <div className="parent-dashboard-container" style={{ position: 'relative' }}>
+            {activeCriticalRemark && (
+                <div className="lockout-overlay" style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 99999,
+                    background: 'var(--lockout-overlay-bg)',
+                    backdropFilter: 'blur(20px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div className="lockout-box animate-enter" style={{
+                        background: 'var(--bg-card)',
+                        border: '2px solid var(--error)',
+                        borderRadius: '16px',
+                        padding: '32px',
+                        maxWidth: '550px',
+                        width: '100%',
+                        boxShadow: 'var(--shadow-hard)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '20px',
+                        color: 'var(--text-primary)',
+                        textAlign: 'center'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <div className="pulse-anim" style={{
+                                background: 'rgba(239, 68, 68, 0.12)',
+                                border: '2.5px solid var(--error)',
+                                borderRadius: '50%',
+                                padding: '16px',
+                                display: 'inline-flex',
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}>
+                                <ShieldAlert size={48} color="var(--error)" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <span style={{
+                                background: 'rgba(239, 68, 68, 0.15)',
+                                color: 'var(--error)',
+                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                padding: '4px 12px',
+                                borderRadius: '20px',
+                                fontSize: '0.72rem',
+                                fontWeight: '800',
+                                textTransform: 'uppercase',
+                                letterSpacing: '1px'
+                            }}>
+                                High Priority Parent Acknowledgment Lockout
+                            </span>
+                            <h2 style={{ fontSize: '1.75rem', fontWeight: '900', color: 'var(--text-primary)', marginTop: '12px', letterSpacing: '-0.5px' }}>
+                                Administrative Warning Interceptor
+                            </h2>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', marginTop: '6px', lineHeight: '1.5' }}>
+                                A critical academic compliance alert has been issued by the Class Mentor. Access to the dashboard operations is temporarily locked until your electronic signature acknowledgment is captured.
+                            </p>
+                        </div>
+
+                        <div style={{
+                            background: 'var(--bg-secondary)',
+                            border: '1.5px solid var(--border-color)',
+                            borderRadius: '10px',
+                            padding: '20px',
+                            textAlign: 'left',
+                            fontSize: '0.9rem',
+                            lineHeight: '1.6',
+                            color: 'var(--text-primary)'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px' }}>
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Issuer / Section</span>
+                                <span style={{ color: 'var(--accent-action)', fontWeight: '700' }}>{activeCriticalRemark.teacherName} ({activeCriticalRemark.sectionCode})</span>
+                            </div>
+                            <div style={{ color: 'var(--error)', fontWeight: '600', fontStyle: 'italic', marginBottom: '10px' }}>
+                                "{activeCriticalRemark.message}"
+                            </div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Logged USN: {activeChildId === '00000000-0000-0000-0000-000000000002' ? '4VV25EC002' : '4VV25EC001'}</span>
+                                <span>Date: {new Date(activeCriticalRemark.createdAt).toLocaleString('en-GB')}</span>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
+                            <label style={{ fontSize: '0.82rem', color: 'var(--text-primary)', fontWeight: '700' }}>Parent Electronic Signature *</label>
+                            <input 
+                                type="text"
+                                placeholder="Type your name (e.g. Abhi) to sign off..."
+                                value={signatureName}
+                                onChange={(e) => {
+                                    setSignatureName(e.target.value);
+                                    if (errorMsg) setErrorMsg('');
+                                }}
+                                style={{
+                                    background: 'var(--bg-secondary)',
+                                    border: '1.5px solid var(--error)',
+                                    borderRadius: '8px',
+                                    padding: '12px 14px',
+                                    fontSize: '0.92rem',
+                                    color: 'var(--text-primary)',
+                                    outline: 'none',
+                                    width: '100%',
+                                    boxSizing: 'border-box',
+                                    transition: 'all 0.2s'
+                                }}
+                            />
+                            {errorMsg && (
+                                <span style={{ color: 'var(--error)', fontSize: '0.78rem', fontWeight: '700', marginTop: '2px' }}>
+                                    ⚠️ {errorMsg}
+                                </span>
+                            )}
+                        </div>
+
+                        <style>{`
+                            @keyframes pulseButtonGlow {
+                                0% { transform: scale(1); box-shadow: 0 0 15px rgba(251, 191, 36, 0.45), inset 0 0 10px rgba(255,255,255,0.1); }
+                                50% { transform: scale(1.02); box-shadow: 0 0 32px rgba(251, 191, 36, 0.8), inset 0 0 15px rgba(255,255,255,0.25); }
+                                100% { transform: scale(1); box-shadow: 0 0 15px rgba(251, 191, 36, 0.45), inset 0 0 10px rgba(255,255,255,0.1); }
+                            }
+                            .glowing-btn-pulse {
+                                animation: pulseButtonGlow 1.8s infinite cubic-bezier(0.4, 0, 0.2, 1);
+                            }
+                        `}</style>
+
+                        <button 
+                            onClick={() => handleAcknowledgeAndSign(activeCriticalRemark.id)}
+                            className="glowing-btn-pulse"
+                            style={{
+                                border: 'none',
+                                background: 'linear-gradient(135deg, #fbbf24, #d97706)',
+                                color: '#000',
+                                padding: '14px',
+                                borderRadius: '8px',
+                                fontSize: '0.92rem',
+                                fontWeight: '900',
+                                cursor: 'pointer',
+                                transition: 'all 0.25s ease',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }}
+                        >
+                            Acknowledge Remark
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <header className="parent-welcome">
                 <h1>Welcome Back, Parent! 👋</h1>
                 <p>Monitoring child node: <strong style={{ color: 'var(--accent-primary)' }}>{childName}</strong></p>
