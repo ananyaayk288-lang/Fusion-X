@@ -12,7 +12,8 @@ export const mockBackend = {
         { id: '00000000-0000-0000-0000-000000000003', name: 'anagha', email: 'anagha@vvce', role: 'student', password: 'anagha', usn: '4VV25EC003' },
         { id: '00000000-0000-0000-0000-000000000004', name: 'bhavana', email: 'bhav@vvce', role: 'teacher', password: 'bhav', subject: '1BMATE201 - Applied Mathematics - II for EE Stream' },
         { id: '00000000-0000-0000-0000-000000000005', name: 'abhi', email: 'abhi@vvce', role: 'parent', password: 'abhi', childEmail: 'bp@vvce', childId: '00000000-0000-0000-0000-000000000002' },
-        { id: '00000000-0000-0000-0000-000000000006', name: 'preksha', email: 'preksha@vvce', role: 'parent', password: 'preksha', childEmail: 'bp@vvce', childId: '00000000-0000-0000-0000-000000000002' }
+        { id: '00000000-0000-0000-0000-000000000006', name: 'preksha', email: 'preksha@vvce', role: 'parent', password: 'preksha', childEmail: 'bp@vvce', childId: '00000000-0000-0000-0000-000000000002' },
+        { id: '00000000-0000-0000-0000-000000000007', name: 'Dean Admin', email: 'admin@vvce', role: 'admin', password: 'admin' }
     ],
 
     schoolSubjects: ['Mathematics', 'Science', 'Social Studies', 'English', 'Computer Science', 'Art', 'Physical Education'],
