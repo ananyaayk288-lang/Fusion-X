@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { mockBackend } from '../../services/mockBackend';
@@ -25,8 +25,11 @@ const DashboardLayout = ({ children }) => {
     const { theme, toggleTheme } = useTheme();
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [liveUnreadCount, setLiveUnreadCount] = useState(0);
+
+    const currentView = searchParams ? searchParams.get('view') : null;
 
     React.useEffect(() => {
         if (!loading && !user) {
@@ -148,7 +151,10 @@ const DashboardLayout = ({ children }) => {
     ];
 
     const teacherNav = [
-        { label: 'Dashboard', icon: <Layout size={20} />, path: '/dashboard' },
+        { label: 'Subject Portal', icon: <Layout size={20} />, path: '/dashboard?view=subject' },
+        ...(user?.isClassTeacher ? [
+            { label: 'Class Advisor Tower', icon: <Sliders size={20} />, path: '/dashboard?view=advisor' }
+        ] : []),
         { label: 'Assignment Hub', icon: <BookOpenCheck size={20} />, path: '/dashboard/assignments' },
         { label: 'Attendance List', icon: <Calendar size={20} />, path: '/dashboard/attendance' },
         { label: 'Timetable', icon: <Clock size={20} />, path: '/dashboard/timetable' },
@@ -185,11 +191,18 @@ const DashboardLayout = ({ children }) => {
                 ? teacherNav 
                 : studentNav;
 
-    const currentLabel = navItems
+    const activeItem = navItems
         .filter(i => i.path)
-        .slice()
-        .sort((a, b) => b.path.length - a.path.length)
-        .find(i => pathname.startsWith(i.path))?.label || 'Dashboard';
+        .find(i => {
+            if (i.path.includes('?view=advisor')) {
+                return pathname === '/dashboard' && currentView === 'advisor';
+            }
+            if (i.path.includes('?view=subject')) {
+                return pathname === '/dashboard' && currentView !== 'advisor';
+            }
+            return pathname === i.path;
+        });
+    const currentLabel = activeItem?.label || 'Dashboard';
 
     const notifications = mockBackend.notifications || [];
     const unreadCount = (notifications.filter(n => !n.read).length) + liveUnreadCount;
@@ -207,20 +220,30 @@ const DashboardLayout = ({ children }) => {
                 </div>
 
                 <nav className="sidebar-nav">
-                    {navItems.map((item, idx) => (
-                        item.type === 'divider' ? (
+                    {navItems.map((item, idx) => {
+                        const isCurrentActive = (() => {
+                            if (item.path?.includes('?view=advisor')) {
+                                return pathname === '/dashboard' && currentView === 'advisor';
+                            }
+                            if (item.path?.includes('?view=subject')) {
+                                return pathname === '/dashboard' && currentView !== 'advisor';
+                            }
+                            return pathname === item.path;
+                        })();
+
+                        return item.type === 'divider' ? (
                             <div key={`divider-${idx}`} className="nav-divider" />
                         ) : (
                             <div
-                                key={item.path}
-                                className={`nav-item ${pathname === item.path ? 'active' : ''}`}
+                                key={`${item.path}-${idx}`}
+                                className={`nav-item ${isCurrentActive ? 'active' : ''}`}
                                 onClick={() => { router.push(item.path); setSidebarOpen(false); }}
                             >
                                 <div className="icon-container">{item.icon}</div>
                                 <span className="sidebar-text">{item.label}</span>
                             </div>
-                        )
-                    ))}
+                        );
+                    })}
                 </nav>
             </aside>
 
