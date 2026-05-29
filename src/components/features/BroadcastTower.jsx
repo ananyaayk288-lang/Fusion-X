@@ -69,7 +69,7 @@ export default function BroadcastTower() {
     };
 
     return (
-        <div className="broadcast-container animate-enter" style={{ color: 'var(--text-primary)', padding: '1.5rem 0.5rem', backgroundColor: '#030712' }}>
+        <div className="broadcast-container animate-enter" style={{ color: 'var(--text-primary)', padding: '1.5rem 0.5rem', backgroundColor: 'var(--bg-app-background)' }}>
             
             {/* Header Banner */}
             <div className="lms-title-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -203,12 +203,12 @@ export default function BroadcastTower() {
 
                     {/* Ripple animation visualizer & Dispatch button */}
                     <div style={panelCardStyle}>
-                        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '140px', background: '#070a13', border: '1px solid #1e293b', borderRadius: '8px', marginBottom: '1rem', overflow: 'hidden' }}>
+                        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '140px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', marginBottom: '1rem', overflow: 'hidden' }}>
                             {pulseWaves && (
                                 <div style={{ position: 'absolute', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.08)', animation: 'rippleGlow 1.5s infinite linear' }} />
                             )}
-                            <Radio size={40} color={pulseWaves ? '#ef4444' : '#4b5563'} style={{ zIndex: 2, transform: pulseWaves ? 'scale(1.15)' : 'none', transition: 'all 0.3s' }} />
-                            <span style={{ fontSize: '0.7rem', color: pulseWaves ? '#ef4444' : '#6b7280', fontWeight: 'bold', zIndex: 2, marginTop: '8px', textTransform: 'uppercase' }}>
+                            <Radio size={40} color={pulseWaves ? 'var(--error)' : 'var(--text-secondary)'} style={{ zIndex: 2, transform: pulseWaves ? 'scale(1.15)' : 'none', transition: 'all 0.3s' }} />
+                            <span style={{ fontSize: '0.7rem', color: pulseWaves ? 'var(--error)' : 'var(--text-secondary)', fontWeight: 'bold', zIndex: 2, marginTop: '8px', textTransform: 'uppercase' }}>
                                 {pulseWaves ? 'TRANSMITTING SIGNAL...' : 'TOWER IDLE'}
                             </span>
 
@@ -256,19 +256,20 @@ export default function BroadcastTower() {
                     <h3 style={panelHeaderStyle}>Transmission Signal Stream</h3>
                     <div style={{ 
                         marginTop: '10px', 
-                        background: '#040711', 
+                        background: 'var(--bg-secondary)', 
+                        border: '1px solid var(--border-color)',
                         padding: '12px', 
                         borderRadius: '6px', 
                         fontFamily: 'monospace', 
                         fontSize: '0.72rem', 
-                        color: '#ff6b6b',
+                        color: 'var(--error)',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '6px'
                     }}>
                         {broadcastLogs.map((log, idx) => (
                             <div key={idx} style={{ display: 'flex', gap: '8px' }}>
-                                <span style={{ color: '#4b5563' }}>[TOWER] &gt;&gt;</span>
+                                <span style={{ color: 'var(--text-secondary)' }}>[TOWER] &gt;&gt;</span>
                                 <span>{log}</span>
                             </div>
                         ))}
@@ -299,7 +300,7 @@ const labelStyle = {
     fontSize: '0.75rem',
     fontWeight: 'bold',
     textTransform: 'uppercase',
-    color: '#888',
+    color: 'var(--text-secondary)',
     display: 'block',
     marginBottom: '6px'
 };
@@ -325,9 +326,9 @@ const matrixLabelStyle = {
 };
 
 const badgeBtnStyle = (isActive) => ({
-    background: isActive ? 'rgba(239, 68, 68, 0.12)' : 'rgba(255,255,255,0.02)',
-    border: isActive ? '1px solid #ef4444' : '1px solid #374151',
-    color: isActive ? '#ef4444' : '#9ca3af',
+    background: isActive ? 'rgba(239, 68, 68, 0.12)' : 'var(--bg-primary)',
+    border: isActive ? '1px solid var(--error)' : '1px solid var(--border-color)',
+    color: isActive ? 'var(--error)' : 'var(--text-secondary)',
     padding: '6px 12px',
     borderRadius: '4px',
     fontSize: '0.7rem',
