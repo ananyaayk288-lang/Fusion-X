@@ -28,10 +28,16 @@ const DashboardLayout = ({ children }) => {
     const [liveUnreadCount, setLiveUnreadCount] = useState(0);
 
     React.useEffect(() => {
-        if (!loading && !user) {
-            router.push('/login');
+        if (!loading) {
+            if (!user) {
+                router.push('/login');
+            } else if (user.role === 'parent' && pathname === '/dashboard') {
+                router.push('/dashboard/parent-dashboard');
+            } else if (user.role !== 'parent' && pathname.startsWith('/dashboard/parent-dashboard')) {
+                router.push('/dashboard');
+            }
         }
-    }, [user, loading, router]);
+    }, [user, loading, router, pathname]);
 
     React.useEffect(() => {
         if (loading || !user) return;
@@ -144,7 +150,37 @@ const DashboardLayout = ({ children }) => {
         { label: 'Smart Exam Predictor', icon: <BrainCircuit size={20} />, path: '/dashboard/predictor' },
     ];
 
-    const navItems = user?.role === 'parent' ? parentNav : studentNav;
+    const teacherNav = [
+        { label: 'Dashboard', icon: <Layout size={20} />, path: '/dashboard' },
+        { label: 'Assignment Hub', icon: <BookOpenCheck size={20} />, path: '/dashboard/assignments' },
+        { label: 'Attendance List', icon: <Calendar size={20} />, path: '/dashboard/attendance' },
+        { label: 'Timetable', icon: <Clock size={20} />, path: '/dashboard/timetable' },
+        { label: 'Notes & PYQs', icon: <BookOpen size={20} />, path: '/dashboard/notes' },
+        { type: 'divider' },
+        { label: 'Doubt Solving', icon: <MessageSquare size={20} />, path: '/dashboard/doubts' },
+        { label: 'Discussion Forum', icon: <Hash size={20} />, path: '/dashboard/chat' },
+        { label: 'Answer Analysis', icon: <BarChart2 size={20} />, path: '/dashboard/analysis' },
+        { label: 'Project Hub', icon: <GitBranch size={20} />, path: '/dashboard/projects' },
+        { type: 'divider' },
+        { label: 'Teacher\'s Diary', icon: <BookOpenCheck size={20} />, path: '/dashboard/teachers-diary' },
+        { label: 'Paper Generator', icon: <ClipboardList size={20} />, path: '/dashboard/paper-generator' },
+        { label: 'Complaint Box', icon: <Shield size={20} />, path: '/dashboard/complaints' },
+    ];
+
+    const adminNav = [
+        { label: 'Dashboard', icon: <Layout size={20} />, path: '/dashboard' },
+        { label: 'Attendance Audit', icon: <Calendar size={20} />, path: '/dashboard/attendance' },
+        { label: 'Project Hub', icon: <GitBranch size={20} />, path: '/dashboard/projects' },
+        { label: 'Complaint Desk', icon: <Shield size={20} />, path: '/dashboard/complaints' },
+    ];
+
+    const navItems = user?.role === 'parent' 
+        ? parentNav 
+        : user?.role === 'admin'
+            ? adminNav
+            : user?.role === 'teacher' 
+                ? teacherNav 
+                : studentNav;
 
     const currentLabel = navItems
         .filter(i => i.path)
