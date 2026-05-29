@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Calendar, Search, X, Upload, Check, Bell, User as UserIcon, PlusCircle, Trash2 } from 'lucide-react';
+import { Calendar, Search, X, Upload, Check, Bell, User as UserIcon, PlusCircle, Trash2, ShieldAlert, AlertTriangle, RefreshCw, Eye } from 'lucide-react';
 import { createClient } from '../../utils/supabase/client';
 import { useAuth } from '../../context/AuthContext';
 import './Attendance.css';
@@ -220,9 +220,55 @@ const semester2Daywise = [
     { id: 'mock-s2-11', course: '1BMATE201 - Applied Mathematics - II for EE Stream', date: '04-03-2026', day: 'Wednesday', present: 1, total: 2, doc: '', docStatus: '', sem: '2 - Semester' }
 ];
 
+const auditCardStyle = {
+    background: 'var(--bg-card)',
+    border: '2px solid var(--border-color)',
+    borderRadius: '12px',
+    padding: '1.25rem',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+};
+
+const auditLabelStyle = {
+    fontSize: '0.72rem',
+    fontWeight: '700',
+    color: 'var(--text-secondary)',
+    textTransform: 'uppercase',
+    marginBottom: '4px'
+};
+
+const auditSubStyle = {
+    fontSize: '0.65rem',
+    color: '#666',
+    display: 'block',
+    marginTop: '2px'
+};
+
+const auditPanelStyle = {
+    background: 'var(--bg-card)',
+    border: '2px solid var(--border-color)',
+    borderRadius: '12px',
+    padding: '1.25rem',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+};
+
+const auditPanelTitleStyle = {
+    fontSize: '0.95rem',
+    fontWeight: '800',
+    color: 'var(--text-primary)'
+};
+
 const Attendance = () => {
     const { user } = useAuth();
-    const supabase = createClient();
+    const supabase = useMemo(() => createClient(), []);
+
+    // Admin specific audit states
+    const [auditAlerts, setAuditAlerts] = useState([
+        { id: '1', name: 'Bharath P', usn: '4VV25EC032', gateway: 'CSE Block Gate A', conflictGate: 'Library Gate 1', timeGap: 8, status: 'unresolved' },
+        { id: '2', name: 'Anagha', usn: '4VV25CS014', gateway: 'Science Block Main', conflictGate: 'Hostel Outer Ring', timeGap: 14, status: 'unresolved' },
+        { id: '3', name: 'Bharath Kumar A', usn: '4VV25EE008', gateway: 'Admin Gate 2', conflictGate: 'Mechanical Lab Entrance', timeGap: 22, status: 'unresolved' }
+    ]);
+    const [isGateScanRunning, setIsGateScanRunning] = useState(false);
+    const [scanMessage, setScanMessage] = useState('');
 
     // Live state synced from Supabase
     const [supabaseRecords, setSupabaseRecords] = useState([]);
@@ -707,6 +753,276 @@ const Attendance = () => {
             setFileNameText(file.name);
         }
     };
+
+    if (user?.role === 'admin') {
+        const dispatchWarning = (id, name) => {
+            setAuditAlerts(prev => prev.map(alert => alert.id === id ? { ...alert, status: 'warned' } : alert));
+            setScanMessage(`Dispatched high-impact proxy violation alert to parents of student: ${name}`);
+            setTimeout(() => setScanMessage(''), 4000);
+        };
+
+        const clearAlert = (id) => {
+            setAuditAlerts(prev => prev.filter(alert => alert.id !== id));
+        };
+
+        const triggerProxyAuditSweep = () => {
+            setIsGateScanRunning(true);
+            setScanMessage('Scanning global gateway entries for proxy tap signals...');
+            setTimeout(() => {
+                setIsGateScanRunning(false);
+                const randomId = String(Date.now());
+                const names = ['Kiran M', 'Tejas R', 'Neha S'];
+                const usns = ['4VV25CS048', '4VV25EC112', '4VV25ME029'];
+                const gates = ['CSE Block Gate B', 'IS Block Gate 1', 'Admin Entrance'];
+                const randIndex = Math.floor(Math.random() * names.length);
+                
+                setAuditAlerts(prev => [
+                    ...prev,
+                    {
+                        id: randomId,
+                        name: names[randIndex],
+                        usn: usns[randIndex],
+                        gateway: gates[randIndex],
+                        conflictGate: 'Central Library Gate 2',
+                        timeGap: Math.floor(Math.random() * 12) + 2,
+                        status: 'unresolved'
+                    }
+                ]);
+                setScanMessage('Audit sweep complete. Discovered 1 new proxy tap mismatch signature.');
+                setTimeout(() => setScanMessage(''), 5000);
+            }, 1800);
+        };
+
+        return (
+            <div className="lms-attendance-page animate-enter" style={{ backgroundColor: '#030712', color: 'var(--text-primary)', padding: '1.5rem 0.5rem' }}>
+                {/* Header */}
+                <div className="lms-title-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <span>AI Footfall & Proxy-Risk Audit</span>
+                    <span style={{ fontSize: '0.85rem', opacity: 0.8, fontWeight: 500, color: 'var(--accent-primary)' }}>
+                        Institutional RFID entries & double-tap audit alerts
+                    </span>
+                </div>
+
+                {/* Macro metrics */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+                    <div style={auditCardStyle}>
+                        <h4 style={auditLabelStyle}>Total RFID Footfall</h4>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#60a5fa' }}>2,842 swipes</div>
+                        <span style={auditSubStyle}>Active entries today</span>
+                    </div>
+                    <div style={auditCardStyle}>
+                        <h4 style={auditLabelStyle}>System Security Score</h4>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#10b981' }}>98.2% Safe</div>
+                        <span style={auditSubStyle}>0.4% warning threshold</span>
+                    </div>
+                    <div style={auditCardStyle}>
+                        <h4 style={auditLabelStyle}>Double-Tap Mismatches</h4>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ef4444' }}>
+                            {auditAlerts.filter(a => a.status === 'unresolved').length} Alerts
+                        </div>
+                        <span style={auditSubStyle}>Requires admin dispatch</span>
+                    </div>
+                    <div style={auditCardStyle}>
+                        <h4 style={auditLabelStyle}>Active Edge Gateways</h4>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f59e0b' }}>4/4 Online</div>
+                        <span style={auditSubStyle}>Telemetry links sync OK</span>
+                    </div>
+                </div>
+
+                {/* Controller Bar */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(31,41,55,0.3)', border: '2px solid var(--border-color)', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem' }}>
+                    <div>
+                        <h3 style={{ fontSize: '0.95rem', fontWeight: 800 }}>Proxy Risk Engine Controls</h3>
+                        <p style={{ fontSize: '0.72rem', color: '#888', marginTop: '2px' }}>
+                            Scans card tap signatures across different blocks with overlapping timestamps.
+                        </p>
+                    </div>
+                    <button 
+                        onClick={triggerProxyAuditSweep}
+                        disabled={isGateScanRunning}
+                        style={{
+                            background: 'rgba(99, 102, 241, 0.15)',
+                            border: '1px solid #6366f1',
+                            color: '#6366f1',
+                            padding: '8px 16px',
+                            borderRadius: '6px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            fontSize: '0.78rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            textTransform: 'uppercase',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <RefreshCw size={14} className={isGateScanRunning ? 'animate-spin' : ''} />
+                        {isGateScanRunning ? 'Scanning gateways...' : 'Run Audit Sweep'}
+                    </button>
+                </div>
+
+                {/* Notification toast area */}
+                {scanMessage && (
+                    <div style={{
+                        padding: '12px',
+                        borderRadius: '6px',
+                        backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                        border: '1px solid #6366f1',
+                        color: '#a5b4fc',
+                        fontSize: '0.82rem',
+                        fontWeight: '500',
+                        marginBottom: '1.5rem'
+                    }}>
+                        {scanMessage}
+                    </div>
+                )}
+
+                {/* Matrix layout */}
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
+                    
+                    {/* Flags List Table */}
+                    <div style={auditPanelStyle}>
+                        <h3 style={auditPanelTitleStyle}>Double-Tap Mismatch Alert Matrix</h3>
+                        <p style={{ fontSize: '0.72rem', color: '#888', marginBottom: '1rem' }}>
+                            Identifies adjacent block reader card logs with time differences less than 15 seconds.
+                        </p>
+
+                        <div className="lms-table-container" style={{ margin: 0 }}>
+                            <table className="lms-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student USN</th>
+                                        <th>Name</th>
+                                        <th>Gateway A</th>
+                                        <th>Gateway B</th>
+                                        <th>Gap</th>
+                                        <th>Action Panel</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {auditAlerts.length > 0 ? (
+                                        auditAlerts.map((alert) => (
+                                            <tr key={alert.id}>
+                                                <td style={{ fontFamily: 'monospace' }}>{alert.usn}</td>
+                                                <td style={{ fontWeight: '700' }}>{alert.name}</td>
+                                                <td>{alert.gateway}</td>
+                                                <td>{alert.conflictGate}</td>
+                                                <td style={{ color: '#ef4444', fontWeight: 'bold' }}>{alert.timeGap}s</td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        {alert.status === 'unresolved' ? (
+                                                            <>
+                                                                <button 
+                                                                    onClick={() => dispatchWarning(alert.id, alert.name)}
+                                                                    style={{
+                                                                        background: 'rgba(239, 68, 68, 0.15)',
+                                                                        border: '1px solid #ef4444',
+                                                                        color: '#ef4444',
+                                                                        padding: '4px 8px',
+                                                                        borderRadius: '4px',
+                                                                        fontSize: '0.7rem',
+                                                                        fontWeight: 'bold',
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    Warn Parent
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => clearAlert(alert.id)}
+                                                                    style={{
+                                                                        background: 'rgba(255,255,255,0.05)',
+                                                                        border: '1px solid #444',
+                                                                        color: '#9ca3af',
+                                                                        padding: '4px 8px',
+                                                                        borderRadius: '4px',
+                                                                        fontSize: '0.7rem',
+                                                                        fontWeight: 'bold',
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    Clear
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 'bold' }}>
+                                                                ✓ Warning Sent
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={6} style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
+                                                No double-tap mismatch warnings currently recorded.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Proximity Scanning Radar Animation */}
+                    <div style={auditPanelStyle}>
+                        <h3 style={auditPanelTitleStyle}>Live BLE Proximity Radar</h3>
+                        <p style={{ fontSize: '0.72rem', color: '#888', marginBottom: '1.25rem' }}>
+                            Simulated real-time BLE beacons checking in registered devices in CSE labs.
+                        </p>
+
+                        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '180px', background: '#070a13', border: '1px solid #1e293b', borderRadius: '8px', overflow: 'hidden' }}>
+                            <div className="radar-radar-circle" />
+                            <div className="radar-sweep-hand" />
+                            <ShieldAlert size={36} color="#6366f1" style={{ zIndex: 2 }} />
+                            <span style={{ fontSize: '0.68rem', color: '#6366f1', fontWeight: 'bold', marginTop: '10px', zIndex: 2, textTransform: 'uppercase' }}>
+                                BLE Scanner Engine Listening
+                            </span>
+
+                            <style>{`
+                                .radar-radar-circle {
+                                    position: absolute;
+                                    width: 140px;
+                                    height: 140px;
+                                    border: 1px solid rgba(99, 102, 241, 0.15);
+                                    border-radius: 50%;
+                                }
+                                .radar-radar-circle::before {
+                                    content: '';
+                                    position: absolute;
+                                    width: 90px;
+                                    height: 90px;
+                                    top: 25px;
+                                    left: 25px;
+                                    border: 1px solid rgba(99, 102, 241, 0.1);
+                                    border-radius: 50%;
+                                }
+                                .radar-sweep-hand {
+                                    position: absolute;
+                                    width: 70px;
+                                    height: 70px;
+                                    border-right: 2px solid rgba(99, 102, 241, 0.6);
+                                    border-radius: 0 100% 0 0;
+                                    transform-origin: bottom left;
+                                    top: 20px;
+                                    left: 50%;
+                                    animation: radarScanSweep 3s infinite linear;
+                                    background: linear-gradient(45deg, transparent, rgba(99, 102, 241, 0.05));
+                                }
+                                @keyframes radarScanSweep {
+                                    0% { transform: rotate(0deg); }
+                                    100% { transform: rotate(360deg); }
+                                }
+                            `}</style>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        );
+    }
+
+
 
     return (
         <div className="lms-attendance-page">
