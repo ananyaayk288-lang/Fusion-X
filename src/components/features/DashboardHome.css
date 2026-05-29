@@ -66,17 +66,22 @@
     opacity: 0;
 }
 
-/* Force light grey in light theme */
+/* Force clean light background in light theme */
 :root[data-theme="light"] .stat-card {
-    background: #D1D5DB !important;
-    color: #000000 !important;
-    border: 2px solid #000000 !important;
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid var(--border-color) !important;
+    box-shadow: var(--shadow-hard) !important;
 }
 
 :root[data-theme="light"] .stat-card h3,
-:root[data-theme="light"] .stat-card p,
 :root[data-theme="light"] .stat-card .stat-value {
-    color: #000000 !important;
+    color: var(--text-primary) !important;
+}
+
+:root[data-theme="light"] .stat-card p,
+:root[data-theme="light"] .stat-card .stat-subtitle {
+    color: var(--text-secondary) !important;
 }
 
 .stat-card:nth-child(1) {
@@ -487,17 +492,24 @@
 
 /* Light Theme Overrides */
 :root[data-theme="light"] .roadmap-teaser {
-    color: #fff !important;
+    background: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 8px 8px 0px var(--accent-primary) !important;
 }
 
-:root[data-theme="light"] .roadmap-teaser h3,
+:root[data-theme="light"] .roadmap-teaser h3 {
+    color: var(--text-primary) !important;
+}
+
 :root[data-theme="light"] .roadmap-teaser p {
-    color: #fff !important;
+    color: var(--text-secondary) !important;
 }
 
 :root[data-theme="light"] .roadmap-btn {
-    background: #fff !important;
-    color: #000 !important;
+    background: var(--accent-primary) !important;
+    color: var(--text-inverse) !important;
+    box-shadow: 4px 4px 0px #000 !important;
 }
 
 /* Roadmap responsive */
