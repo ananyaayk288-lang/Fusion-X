@@ -11,7 +11,7 @@ import {
     UserCheck, Timer, Bell, Sun, Moon, Target, Trophy, Briefcase,
     Pencil, Clock, Hash, BrainCircuit, Calculator, Activity,
     Flame, StickyNote, CheckCircle2, Shield, GitBranch, ClipboardList,
-    Home, Wallet, ShieldAlert, TrendingUp, BookOpenCheck, Search, Sparkles
+    Home, ShieldAlert, TrendingUp, BookOpenCheck, Search, Sparkles
 } from 'lucide-react';
 import '../../components/layout/DashboardLayout.css';
 import AIChatWidget from '../../components/layout/AIChatWidget';
