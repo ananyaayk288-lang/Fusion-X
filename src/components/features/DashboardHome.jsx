@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { mockBackend } from '../../services/mockBackend';
 import {
@@ -12,9 +13,20 @@ import {
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend
 } from 'recharts';
+import CanteenPOS from './CanteenPOS';
+import CanteenDashboard from './CanteenDashboard';
 import './DashboardHome.css';
 const DashboardHome = () => {
     const { user } = useAuth();
+    const searchParams = useSearchParams();
+    
+    if (user?.role === 'canteen') {
+        const view = searchParams?.get('view');
+        if (view === 'pos') {
+            return <CanteenPOS />;
+        }
+        return <CanteenDashboard />;
+    }
     // =========================================================================
     // ADMIN DASHBOARD STATES & HANDLERS
     // =========================================================================

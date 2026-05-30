@@ -192,13 +192,20 @@ const DashboardLayout = ({ children }) => {
         { label: 'Global Broadcast Tower', icon: <Radio size={20} />, path: '/dashboard/broadcast' },
     ];
 
+    const canteenNav = [
+        { label: 'Analytics Dashboard', icon: <BarChart2 size={20} />, path: '/dashboard' },
+        { label: 'POS Terminal', icon: <Layout size={20} />, path: '/dashboard?view=pos' },
+    ];
+
     const navItems = user?.role === 'parent' 
         ? parentNav 
         : user?.role === 'admin'
             ? adminNav
             : user?.role === 'teacher' 
                 ? teacherNav 
-                : studentNav;
+                : user?.role === 'canteen'
+                    ? canteenNav
+                    : studentNav;
 
     const activeItem = navItems
         .filter(i => i.path)

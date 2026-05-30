@@ -34,6 +34,9 @@ const LoginPage = () => {
         } else if (selectedRole === 'ADMIN') {
             setEmail('admin@vvce');
             setPassword('admin');
+        } else if (selectedRole === 'CANTEEN') {
+            setEmail('canteen@vvce');
+            setPassword('canteen');
         }
     };
 
@@ -88,7 +91,7 @@ const LoginPage = () => {
                         </div>
 
                         {/* Premium Interactive Portal Selector */}
-                        <div className="role-selector" style={{ gridTemplateColumns: 'repeat(5, 1fr)', marginBottom: '2.5rem' }}>
+                        <div className="role-selector" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '2.5rem' }}>
                             <button 
                                 type="button"
                                 className={`role-pill ${loginRole === 'STUDENT' ? 'active' : ''}`}
@@ -128,6 +131,14 @@ const LoginPage = () => {
                                 style={{ fontSize: '0.62rem', letterSpacing: '0px', whiteSpace: 'nowrap', padding: '8px 2px' }}
                             >
                                 Admin
+                            </button>
+                            <button 
+                                type="button"
+                                className={`role-pill ${loginRole === 'CANTEEN' ? 'active' : ''}`}
+                                onClick={() => handleRoleSelect('CANTEEN')}
+                                style={{ fontSize: '0.62rem', letterSpacing: '0px', whiteSpace: 'nowrap', padding: '8px 2px' }}
+                            >
+                                Canteen
                             </button>
                         </div>
 
