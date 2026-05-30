@@ -728,6 +728,7 @@ export const mockBackend = {
                 resolve(reportedEvents);
             }, 400);
         });
+    },
     // Class Advisor / Section Data Models for ECE-2A
     sectionSyllabus: [
         { id: 1, subject: '1BMATE201 - Applied Mathematics II', teacher: 'Dr. Bhavana', syllabus: 85, expected: 75, status: 'Good' },
