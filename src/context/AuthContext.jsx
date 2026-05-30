@@ -216,6 +216,7 @@ export const AuthProvider = ({ children }) => {
         if (email === '1' && password === '1') {
             const mockStudent = {
                 _id: 'mock-student-id',
+                id: 'mock-student-id',
                 name: 'Demo Student',
                 email: 'student@college.edu',
                 role: 'student',
@@ -231,6 +232,7 @@ export const AuthProvider = ({ children }) => {
         if (email === '2' && password === '2') {
             const mockTeacher = {
                 _id: 'mock-teacher-id',
+                id: 'mock-teacher-id',
                 name: 'Demo Teacher',
                 email: 'teacher@college.edu',
                 role: 'teacher'
@@ -245,6 +247,7 @@ export const AuthProvider = ({ children }) => {
         if (email === '3' && password === '3') {
             const mockParent = {
                 _id: 'mock-parent-id',
+                id: 'mock-parent-id',
                 name: 'Demo Parent',
                 email: 'parent@college.edu',
                 role: 'parent'

@@ -11,7 +11,7 @@ import {
     UserCheck, Timer, Bell, Sun, Moon, Target, Trophy, Briefcase,
     Pencil, Clock, Hash, BrainCircuit, Calculator, Activity,
     Flame, StickyNote, CheckCircle2, Shield, GitBranch, ClipboardList,
-    Home, Wallet, ShieldAlert, TrendingUp, BookOpenCheck, Search, Sparkles
+    Home, Wallet, ShieldAlert, TrendingUp, BookOpenCheck, Search, Sparkles, ShieldCheck
 } from 'lucide-react';
 import '../../components/layout/DashboardLayout.css';
 import AIChatWidget from '../../components/layout/AIChatWidget';
@@ -63,7 +63,7 @@ const DashboardLayout = ({ children }) => {
 
             // 2. Listen to real-time notification inserts targeting this user
             const channel = supabase
-                .channel(`realtime_notifications_${actualUid}`)
+                .channel(`realtime_notifications_${actualUid}_${Date.now()}`)
                 .on(
                     'postgres_changes',
                     { 
@@ -111,6 +111,7 @@ const DashboardLayout = ({ children }) => {
 
     const studentNav = [
         { label: 'Dashboard', icon: <Layout size={20} />, path: '/dashboard' },
+        { label: 'Event Ecosystem', icon: <Target size={20} />, path: '/dashboard/events' },
         { label: 'Assignment Hub', icon: <BookOpenCheck size={20} />, path: '/dashboard/assignments' },
         { label: 'Attendance List', icon: <Calendar size={20} />, path: '/dashboard/attendance' },
         { label: 'Timetable', icon: <Clock size={20} />, path: '/dashboard/timetable' },
@@ -138,13 +139,21 @@ const DashboardLayout = ({ children }) => {
         { label: 'Child Performance', icon: <TrendingUp size={20} />, path: '/dashboard/parent-dashboard' },
         { label: 'Attendance & Class', icon: <Calendar size={20} />, path: '/dashboard/attendance' },
         { type: 'divider' },
+        { label: 'Event Ecosystem', icon: <Target size={20} />, path: '/dashboard/events' },
         { label: 'Finance Portal', icon: <Wallet size={20} />, path: '/dashboard/finance' },
         { label: 'Safety Monitor', icon: <ShieldAlert size={20} />, path: '/dashboard/safety' },
         { label: 'Teacher\'s Diary', icon: <BookOpenCheck size={20} />, path: '/dashboard/teachers-diary' },
         { label: 'Smart Exam Predictor', icon: <BrainCircuit size={20} />, path: '/dashboard/predictor' },
     ];
 
-    const navItems = user?.role === 'parent' ? parentNav : studentNav;
+    let navItems = user?.role === 'parent' ? parentNav : studentNav;
+
+    // Show Accreditation link to everyone for testing
+    navItems = [
+        ...navItems.slice(0, 2),
+        { label: 'Accreditation', icon: <ShieldCheck size={20} />, path: '/dashboard/accreditation' },
+        ...navItems.slice(2)
+    ];
 
     const currentLabel = navItems
         .filter(i => i.path)
