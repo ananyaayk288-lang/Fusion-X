@@ -451,6 +451,285 @@ export const mockBackend = {
         { id: 5, teacher: 'Dr. Bhavana', subject: 'Mathematics II', date: 'May 10, 2026', remark: 'Missed submitting the homework for Laplace Transforms. Please check.', type: 'Alert', read: false },
     ],
 
+    // --- EVENT ECOSYSTEM DATA ---
+    events: [
+        {
+            id: 'ev-1',
+            title: 'Global AI Hackathon 2026',
+            tagline: 'Code the future',
+            description: 'A 48-hour continuous coding marathon focused on generative AI solutions for campus safety.',
+            category: 'Hackathon',
+            department: 'Computer Science',
+            type: 'Technical',
+            start_date: '2026-06-15',
+            end_date: '2026-06-17',
+            timings: '9:00 AM - 9:00 AM',
+            venue: 'Main Auditorium',
+            mode: 'Offline',
+            status: 'Upcoming',
+            is_inter_college: true
+        },
+        {
+            id: 'ev-2',
+            title: 'TechX Symposium 2025',
+            tagline: 'Innovate and inspire',
+            description: 'Annual technology symposium featuring guest lectures and paper presentations.',
+            category: 'Seminar',
+            department: 'Information Science',
+            type: 'Technical',
+            start_date: '2025-11-20',
+            end_date: '2025-11-21',
+            timings: '10:00 AM - 4:00 PM',
+            venue: 'Seminar Hall C',
+            mode: 'Offline',
+            status: 'Completed',
+            is_inter_college: false,
+            report: {
+                totalAttendees: 450,
+                revenueGenerated: '₹22,500',
+                feedbackScore: '4.8/5',
+                highlights: [
+                    'Keynote by Dr. A. Sharma (AI Researcher)',
+                    'Over 50 papers presented across 4 tracks',
+                    'Top 3 papers received cash prizes'
+                ],
+                winners: [
+                    { name: 'Team Alpha', prize: '1st Place - ₹10,000' },
+                    { name: 'Beta Innovators', prize: '2nd Place - ₹5,000' }
+                ],
+                summary: 'The symposium was highly successful with overwhelming participation from both faculty and students. The guest lectures provided deep insights into future tech trends.'
+            }
+        }
+    ],
+
+    getEvents: async (statusFilter) => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    const stored = localStorage.getItem('mock_events');
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        // Inject ev-2 if it doesn't exist in local storage yet (for demo purposes)
+                        if (!parsed.find(e => e.id === 'ev-2')) {
+                            const ev2 = mockBackend.events.find(e => e.id === 'ev-2');
+                            if (ev2) parsed.push(ev2);
+                            localStorage.setItem('mock_events', JSON.stringify(parsed));
+                        }
+                        mockBackend.events = parsed;
+                    }
+                }
+                resolve(mockBackend.events.filter(e => !statusFilter || e.status === statusFilter));
+            }, 300);
+        });
+    },
+
+    getMyEvents: async (userId) => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    const storedE = localStorage.getItem('mock_events');
+                    if (storedE) mockBackend.events = JSON.parse(storedE);
+                    const storedR = localStorage.getItem('mock_registrations');
+                    if (storedR) mockBackend.eventRegistrations = JSON.parse(storedR);
+                }
+                const userRegistrations = mockBackend.eventRegistrations.filter(r => r.userId === userId);
+                const eventIds = userRegistrations.map(r => r.eventId);
+                const myEvents = mockBackend.events.filter(e => eventIds.includes(e.id));
+                resolve(myEvents);
+            }, 300);
+        });
+    },
+
+    getEventById: async (eventId) => {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    const stored = localStorage.getItem('mock_events');
+                    if (stored) mockBackend.events = JSON.parse(stored);
+                }
+                const event = mockBackend.events.find(e => e.id === eventId);
+                if (event) resolve(event);
+                else reject(new Error("Event not found"));
+            }, 300);
+        });
+    },
+
+    createEvent: async (eventData) => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    const stored = localStorage.getItem('mock_events');
+                    if (stored) mockBackend.events = JSON.parse(stored);
+                }
+                const newEvent = {
+                    ...eventData,
+                    id: `ev-${Date.now()}`
+                };
+                mockBackend.events.push(newEvent);
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('mock_events', JSON.stringify(mockBackend.events));
+                }
+                resolve(newEvent);
+            }, 500);
+        });
+    },
+
+    // --- STUDENT REGISTRATION & AUTHORIZATION DATA ---
+    eventRegistrations: [],
+    attendanceAuthorizations: [],
+
+    registerForEvent: async (eventId, userId) => {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    const stored = localStorage.getItem('mock_registrations');
+                    if (stored) mockBackend.eventRegistrations = JSON.parse(stored);
+                }
+                const existing = mockBackend.eventRegistrations.find(r => r.eventId === eventId && r.userId === userId);
+                if (existing) {
+                    reject(new Error("Already registered for this event."));
+                    return;
+                }
+                const newRegistration = {
+                    id: `reg-${Date.now()}`,
+                    eventId,
+                    userId,
+                    status: 'Registered',
+                    qrToken: `QR-${userId}-${eventId}-${Date.now()}`,
+                    registeredAt: new Date().toISOString()
+                };
+                mockBackend.eventRegistrations.push(newRegistration);
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('mock_registrations', JSON.stringify(mockBackend.eventRegistrations));
+                }
+                resolve(newRegistration);
+            }, 500);
+        });
+    },
+
+    checkRegistration: async (eventId, userId) => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    const stored = localStorage.getItem('mock_registrations');
+                    if (stored) mockBackend.eventRegistrations = JSON.parse(stored);
+                }
+                const reg = mockBackend.eventRegistrations.find(r => r.eventId === eventId && r.userId === userId);
+                resolve(reg || null);
+            }, 200);
+        });
+    },
+
+    requestAttendanceAuthorization: async (eventId, studentId, affectedSlots) => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    const stored = localStorage.getItem('mock_authorizations');
+                    if (stored) mockBackend.attendanceAuthorizations = JSON.parse(stored);
+                }
+                const newAuth = {
+                    id: `auth-${Date.now()}`,
+                    eventId,
+                    studentId,
+                    affectedSlots,
+                    status: 'Pending',
+                    requestedAt: new Date().toISOString()
+                };
+                mockBackend.attendanceAuthorizations.push(newAuth);
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('mock_authorizations', JSON.stringify(mockBackend.attendanceAuthorizations));
+                }
+                resolve(newAuth);
+            }, 500);
+        });
+    },
+
+    getPendingAuthorizations: async () => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    const storedE = localStorage.getItem('mock_events');
+                    if (storedE) mockBackend.events = JSON.parse(storedE);
+                    const storedA = localStorage.getItem('mock_authorizations');
+                    if (storedA) mockBackend.attendanceAuthorizations = JSON.parse(storedA);
+                }
+                const enriched = mockBackend.attendanceAuthorizations.filter(a => a.status === 'Pending').map(auth => {
+                    const event = mockBackend.events.find(e => e.id === auth.eventId);
+                    const student = mockBackend.users.find(u => u.id === auth.studentId);
+                    return { ...auth, eventTitle: event?.title, studentName: student?.name, usn: student?.usn };
+                });
+                resolve(enriched);
+            }, 300);
+        });
+    },
+
+    approveAuthorization: async (authId) => {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    const storedA = localStorage.getItem('mock_authorizations');
+                    if (storedA) mockBackend.attendanceAuthorizations = JSON.parse(storedA);
+                }
+                const auth = mockBackend.attendanceAuthorizations.find(a => a.id === authId);
+                if (!auth) return reject(new Error("Authorization not found"));
+                
+                auth.status = 'Approved';
+                auth.resolvedAt = new Date().toISOString();
+                
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('mock_authorizations', JSON.stringify(mockBackend.attendanceAuthorizations));
+                }
+                
+                resolve(auth);
+            }, 300);
+        });
+    },
+
+    // --- EVENT REPORTING & ACCREDITATION ARCHIVE ---
+    submitEventReport: async (eventId, reportData) => {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    const storedE = localStorage.getItem('mock_events');
+                    if (storedE) mockBackend.events = JSON.parse(storedE);
+                }
+                const event = mockBackend.events.find(e => e.id === eventId);
+                if (!event) return reject(new Error("Event not found"));
+                
+                event.status = 'Completed';
+                event.report = {
+                    ...reportData,
+                    submittedAt: new Date().toISOString()
+                };
+                
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('mock_events', JSON.stringify(mockBackend.events));
+                }
+                resolve(event);
+            }, 500);
+        });
+    },
+
+    getAllReports: async () => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    const storedE = localStorage.getItem('mock_events');
+                    if (storedE) {
+                        const parsed = JSON.parse(storedE);
+                        if (!parsed.find(e => e.id === 'ev-2')) {
+                            const ev2 = mockBackend.events.find(e => e.id === 'ev-2');
+                            if (ev2) parsed.push(ev2);
+                            localStorage.setItem('mock_events', JSON.stringify(parsed));
+                        }
+                        mockBackend.events = parsed;
+                    }
+                }
+                const reportedEvents = mockBackend.events.filter(e => e.status === 'Completed' && e.report);
+                resolve(reportedEvents);
+            }, 400);
+        });
+    },
     // Class Advisor / Section Data Models for ECE-2A
     sectionSyllabus: [
         { id: 1, subject: '1BMATE201 - Applied Mathematics II', teacher: 'Dr. Bhavana', syllabus: 85, expected: 75, status: 'Good' },

@@ -11,7 +11,7 @@ import {
     UserCheck, Timer, Bell, Sun, Moon, Target, Trophy, Briefcase,
     Pencil, Clock, Hash, BrainCircuit, Calculator, Activity,
     Flame, StickyNote, CheckCircle2, Shield, GitBranch, ClipboardList,
-    Home, Wallet, ShieldAlert, TrendingUp, BookOpenCheck, Search, Sparkles, Sliders,
+    Home, Wallet, ShieldAlert, TrendingUp, BookOpenCheck, Search, Sparkles, ShieldCheck, Sliders,
     Zap, MapPin, Radio
 } from 'lucide-react';
 import '../../components/layout/DashboardLayout.css';
@@ -73,7 +73,7 @@ const DashboardLayout = ({ children }) => {
 
             // 2. Listen to real-time notification inserts targeting this user
             const channel = supabase
-                .channel(`realtime_notifications_${actualUid}`)
+                .channel(`realtime_notifications_${actualUid}_${Date.now()}`)
                 .on(
                     'postgres_changes',
                     { 
@@ -121,6 +121,7 @@ const DashboardLayout = ({ children }) => {
 
     const studentNav = [
         { label: 'Dashboard', icon: <Layout size={20} />, path: '/dashboard' },
+        { label: 'Event Ecosystem', icon: <Target size={20} />, path: '/dashboard/events' },
         { label: 'Assignment Hub', icon: <BookOpenCheck size={20} />, path: '/dashboard/assignments' },
         { label: 'Attendance List', icon: <Calendar size={20} />, path: '/dashboard/attendance' },
         { label: 'Timetable', icon: <Clock size={20} />, path: '/dashboard/timetable' },
@@ -152,6 +153,7 @@ const DashboardLayout = ({ children }) => {
         { label: 'Child Performance', icon: <TrendingUp size={20} />, path: '/dashboard/parent-dashboard' },
         { label: 'Attendance & Class', icon: <Calendar size={20} />, path: '/dashboard/attendance' },
         { type: 'divider' },
+        { label: 'Event Ecosystem', icon: <Target size={20} />, path: '/dashboard/events' },
         { label: 'Finance Portal', icon: <Wallet size={20} />, path: '/dashboard/finance' },
         { label: 'Safety Monitor', icon: <ShieldAlert size={20} />, path: '/dashboard/safety' },
         { label: 'Teacher\'s Diary', icon: <BookOpenCheck size={20} />, path: '/dashboard/teachers-diary' },
@@ -161,6 +163,8 @@ const DashboardLayout = ({ children }) => {
 
     const teacherNav = [
         { label: 'Subject Portal', icon: <Layout size={20} />, path: '/dashboard?view=subject' },
+        { label: 'Event Ecosystem', icon: <Target size={20} />, path: '/dashboard/events' },
+        { label: 'Accreditation', icon: <ShieldCheck size={20} />, path: '/dashboard/accreditation' },
         ...(user?.isClassTeacher ? [
             { label: 'Class Advisor Tower', icon: <Sliders size={20} />, path: '/dashboard?view=advisor' }
         ] : []),
@@ -182,6 +186,8 @@ const DashboardLayout = ({ children }) => {
 
     const adminNav = [
         { label: 'System Control Tower', icon: <Layout size={20} />, path: '/dashboard' },
+        { label: 'Event Ecosystem', icon: <Target size={20} />, path: '/dashboard/events' },
+        { label: 'Accreditation', icon: <ShieldCheck size={20} />, path: '/dashboard/accreditation' },
         { label: 'AI Footfall & Proxy-Risk Audit', icon: <Calendar size={20} />, path: '/dashboard/attendance' },
         { label: 'Tech & Innovation Registry', icon: <GitBranch size={20} />, path: '/dashboard/projects' },
         { label: 'Escalation Desk', icon: <Shield size={20} />, path: '/dashboard/complaints' },
