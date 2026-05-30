@@ -3,16 +3,17 @@ export const mockBackend = {
     users: [
         // 1 1, 2 2, 3 3 accounts
         { id: 'mock-student-id', name: 'Demo Student', email: '1', role: 'student', password: '1', usn: '4VV25EC001' },
-        { id: 'mock-teacher-id', name: 'Demo Teacher', email: '2', role: 'teacher', password: '2' },
+        { id: 'mock-teacher-id', name: 'Demo Teacher', email: '2', role: 'teacher', password: '2', isClassTeacher: true, assignedSection: 'ECE-2A' },
         { id: 'mock-parent-id', name: 'Demo Parent', email: '3', role: 'parent', password: '3' },
 
         // Requested VVCE Accounts
         { id: '00000000-0000-0000-0000-000000000001', name: 'bharath kumar a', email: 'bk@vvce', role: 'student', password: 'bk', usn: '4VV25EC001' },
         { id: '00000000-0000-0000-0000-000000000002', name: 'bharath p', email: 'bp@vvce', role: 'student', password: 'bp', usn: '4VV25EC002' },
         { id: '00000000-0000-0000-0000-000000000003', name: 'anagha', email: 'anagha@vvce', role: 'student', password: 'anagha', usn: '4VV25EC003' },
-        { id: '00000000-0000-0000-0000-000000000004', name: 'bhavana', email: 'bhav@vvce', role: 'teacher', password: 'bhav', subject: '1BMATE201 - Applied Mathematics - II for EE Stream' },
+        { id: '00000000-0000-0000-0000-000000000004', name: 'bhavana', email: 'bhav@vvce', role: 'teacher', password: 'bhav', subject: '1BMATE201 - Applied Mathematics - II for EE Stream', isClassTeacher: true, assignedSection: 'ECE-2A' },
         { id: '00000000-0000-0000-0000-000000000005', name: 'abhi', email: 'abhi@vvce', role: 'parent', password: 'abhi', childEmail: 'bp@vvce', childId: '00000000-0000-0000-0000-000000000002' },
-        { id: '00000000-0000-0000-0000-000000000006', name: 'preksha', email: 'preksha@vvce', role: 'parent', password: 'preksha', childEmail: 'bp@vvce', childId: '00000000-0000-0000-0000-000000000002' }
+        { id: '00000000-0000-0000-0000-000000000006', name: 'preksha', email: 'preksha@vvce', role: 'parent', password: 'preksha', childEmail: 'bp@vvce', childId: '00000000-0000-0000-0000-000000000002' },
+        { id: '00000000-0000-0000-0000-000000000007', name: 'Dean Admin', email: 'admin@vvce', role: 'admin', password: 'admin' }
     ],
 
     schoolSubjects: ['Mathematics', 'Science', 'Social Studies', 'English', 'Computer Science', 'Art', 'Physical Education'],
@@ -76,7 +77,7 @@ export const mockBackend = {
             { course: '1BENGK208 - Communication Skills - 2', present: 10, total: 10, percentage: 100.00 },
             { course: '1BICOK210 - Indian Constitution and Engineering Ethics', present: 9, total: 10, percentage: 90.00 },
             { course: '1BIEEK205 - Introduction to Electrical Engineering', present: 21, total: 28, percentage: 75.00 },
-            { course: '1BMATE201 - Applied Mathematics - II for EE Stream', present: 41, total: 47, percentage: 87.23 },
+            { course: '1BCS201 - Introduction to Computer Science for CSE Stream', present: 41, total: 47, percentage: 87.23 },
             { course: '1BPBLK209 - Interdisciplinary Project - Based Learning (Social Innovation Project)', present: 7, total: 7, percentage: 100.00 },
             { course: '1BPHYT202 - Applied Physics for ECE Stream', present: 25, total: 29, percentage: 86.21 },
             { course: '1BPHYTL206 - Applied Physics Lab for ECE Stream', present: 8, total: 8, percentage: 100.00 },
@@ -90,11 +91,11 @@ export const mockBackend = {
             { course: '1BPHYTL206 - Applied Physics Lab for ECE Stream', date: '02-03-2026', day: 'Monday', present: 1, total: 1, doc: '', docStatus: '' },
             { course: '1BPHYT202 - Applied Physics for ECE Stream', date: '02-04-2026', day: 'Thursday', present: 1, total: 1, doc: '', docStatus: '' },
             { course: '1BIEEK205 - Introduction to Electrical Engineering', date: '02-04-2026', day: 'Thursday', present: 1, total: 1, doc: '', docStatus: '' },
-            { course: '1BMATE201 - Applied Mathematics - II for EE Stream', date: '02-04-2026', day: 'Thursday', present: 1, total: 1, doc: '', docStatus: '' },
+            { course: '1BCS201 - Introduction to Computer Science for CSE Stream', date: '02-04-2026', day: 'Thursday', present: 1, total: 1, doc: '', docStatus: '' },
             { course: '1BPLCO203 - Introduction to C Programming', date: '02-04-2026', day: 'Thursday', present: 1, total: 1, doc: '', docStatus: '' },
             { course: '1BCEDT204 - Computer Aided Engineering Drawing for ECE Stream', date: '02-04-2026', day: 'Thursday', present: 1, total: 1, doc: '', docStatus: '' },
             { course: '1BIEEK205 - Introduction to Electrical Engineering', date: '03-03-2026', day: 'Tuesday', present: 1, total: 1, doc: '', docStatus: '' },
-            { course: '1BMATE201 - Applied Mathematics - II for EE Stream', date: '04-03-2026', day: 'Wednesday', present: 1, total: 2, doc: '', docStatus: '' }
+            { course: '1BCS201 - Introduction to Computer Science for CSE Stream', date: '04-03-2026', day: 'Wednesday', present: 1, total: 2, doc: '', docStatus: '' }
         ]
     },
 
@@ -192,51 +193,92 @@ export const mockBackend = {
         schedule: [
             {
                 day: 'Monday', slots: [
-                    { period: 1, span: 2, subject: 'COM SKILLS', type: 'Lecture' },
-                    { period: 3, span: 2, subject: 'PHY LAB', type: 'Lab' },
-                    { period: 5, span: 2, subject: 'INUNITY', type: 'Lecture' },
+                    { period: 1, span: 2, subject: 'CSE', type: 'Lecture' },
+                    { period: 3, span: 2, subject: 'ECE', type: 'Lab' },
+                    { period: 5, span: 2, subject: 'AIML', type: 'Lecture' },
                 ]
             },
             {
                 day: 'Tuesday', slots: [
-                    { period: 1, span: 1, subject: 'EC', type: 'Lecture' },
-                    { period: 2, span: 1, subject: 'CONS', type: 'Lecture' },
-                    { period: 3, span: 1, subject: 'C', type: 'Lecture' },
-                    { period: 4, span: 1, subject: 'MAT', type: 'Lecture' },
-                    { period: 5, span: 2, subject: 'CADE-LAB', type: 'Lab' },
+                    { period: 1, span: 1, subject: 'EEE', type: 'Lecture' },
+                    { period: 2, span: 1, subject: 'ME', type: 'Lecture' },
+                    { period: 3, span: 1, subject: 'CV', type: 'Lecture' },
+                    { period: 5, span: 2, subject: 'CSE', type: 'Lab' },
                 ]
             },
             {
                 day: 'Wednesday', slots: [
-                    { period: 1, span: 1, subject: 'MAT', type: 'Lecture' },
-                    { period: 2, span: 1, subject: 'PHY', type: 'Lecture' },
-                    { period: 3, span: 2, subject: 'MATLAB', type: 'Lab' },
-                    { period: 5, span: 2, subject: 'C-LAB', type: 'Lab' },
+                    { period: 2, span: 1, subject: 'ECE', type: 'Lecture' },
+                    { period: 5, span: 2, subject: 'AIML', type: 'Lab' },
                 ]
             },
             {
                 day: 'Thursday', slots: [
-                    { period: 1, span: 2, subject: 'CADE-T', type: 'Tutorial' },
-                    { period: 3, span: 1, subject: 'MAT', type: 'Lecture' },
-                    { period: 4, span: 1, subject: 'PHY', type: 'Lecture' },
-                    { period: 5, span: 1, subject: 'EC', type: 'Lecture' },
-                    { period: 6, span: 1, subject: 'C', type: 'Lecture' },
+                    { period: 1, span: 2, subject: 'EEE', type: 'Tutorial' },
+                    { period: 4, span: 1, subject: 'ME', type: 'Lecture' },
+                    { period: 5, span: 1, subject: 'CV', type: 'Lecture' },
+                    { period: 6, span: 1, subject: 'CSE', type: 'Lecture' },
                 ]
             },
             {
                 day: 'Friday', slots: [
-                    { period: 1, span: 1, subject: 'C', type: 'Lecture' },
-                    { period: 2, span: 1, subject: 'PHY', type: 'Lecture' },
-                    { period: 3, span: 2, subject: 'CADE-T', type: 'Tutorial' },
-                    { period: 5, span: 1, subject: 'MAT', type: 'Lecture' },
-                    { period: 6, span: 1, subject: 'EC', type: 'Lecture' },
+                    { period: 1, span: 1, subject: 'ECE', type: 'Lecture' },
+                    { period: 2, span: 1, subject: 'AIML', type: 'Lecture' },
+                    { period: 3, span: 2, subject: 'EEE', type: 'Tutorial' },
+                    { period: 6, span: 1, subject: 'ME', type: 'Lecture' },
                 ]
             },
         ],
         exams: [
-            { date: '15/03/2026', subject: 'Mathematics', type: 'Internal 2' },
-            { date: '18/03/2026', subject: 'Physics', type: 'Internal 2' },
+            { date: '15/03/2026', subject: 'CSE', type: 'Internal 2' },
+            { date: '18/03/2026', subject: 'ECE', type: 'Internal 2' },
             { date: '20/04/2026', subject: 'All Subjects', type: 'Semester End Exam' },
+        ]
+    },
+
+    teacherTimetable: {
+        days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        periods: [1, 2, 3, 4, 5, 6],
+        schedule: [
+            {
+                day: 'Monday', slots: [
+                    { period: 1, span: 1, subject: 'CSE', type: 'Lecture' },
+                    { period: 2, span: 1, subject: 'ECE', type: 'Lecture' },
+                    { period: 5, span: 2, subject: 'AIML', type: 'Lab' },
+                ]
+            },
+            {
+                day: 'Tuesday', slots: [
+                    { period: 3, span: 1, subject: 'EEE', type: 'Lecture' },
+                    { period: 4, span: 1, subject: 'ME', type: 'Lecture' },
+                ]
+            },
+            {
+                day: 'Wednesday', slots: [
+                    { period: 1, span: 1, subject: 'CV', type: 'Lecture' },
+                    { period: 2, span: 1, subject: 'CSE', type: 'Lecture' },
+                    { period: 3, span: 2, subject: 'ECE', type: 'Lab' },
+                ]
+            },
+            {
+                day: 'Thursday', slots: [
+                    { period: 3, span: 1, subject: 'AIML', type: 'Lecture' },
+                    { period: 4, span: 1, subject: 'EEE', type: 'Lecture' },
+                    { period: 5, span: 2, subject: 'ME', type: 'Lab' },
+                ]
+            },
+            {
+                day: 'Friday', slots: [
+                    { period: 1, span: 1, subject: 'CV', type: 'Lecture' },
+                    { period: 2, span: 1, subject: 'CSE', type: 'Lecture' },
+                    { period: 5, span: 2, subject: 'ECE', type: 'Lab' },
+                ]
+            },
+        ],
+        exams: [
+            { date: '15/03/2026', subject: 'CSE', type: 'Internal 2 Evaluation' },
+            { date: '16/03/2026', subject: 'ECE', type: 'Internal 2 Evaluation' },
+            { date: '20/04/2026', subject: 'All Sections', type: 'Semester End Assessment' },
         ]
     },
 
@@ -332,8 +374,8 @@ export const mockBackend = {
 
     // Recorded Lectures
     lectures: [
-        { id: 1, subject: 'Mathematics II', unit: 'Unit 1', title: 'Double & Triple Integrals', teacher: 'Dr. Bhavana', link: '#', duration: '1h 20m', views: 234 },
-        { id: 2, subject: 'Mathematics II', unit: 'Unit 2', title: 'Laplace & Fourier Transforms', teacher: 'Dr. Bhavana', link: '#', duration: '1h 45m', views: 189 },
+        { id: 1, subject: 'Computer Science', unit: 'Unit 1', title: 'Double & Triple Integrals', teacher: 'Dr. Bhavana', link: '#', duration: '1h 20m', views: 234 },
+        { id: 2, subject: 'Computer Science', unit: 'Unit 2', title: 'Laplace & Fourier Transforms', teacher: 'Dr. Bhavana', link: '#', duration: '1h 45m', views: 189 },
         { id: 3, subject: 'Engineering Physics', unit: 'Unit 1', title: 'Quantum Mechanics & Semiconductors', teacher: 'Dr. White', link: '#', duration: '55m', views: 312 },
         { id: 4, subject: 'Engineering Physics', unit: 'Unit 3', title: 'Laser and Optical Fibers', teacher: 'Dr. White', link: '#', duration: '1h 10m', views: 156 },
         { id: 5, subject: 'Data Structures', unit: 'Unit 1', title: 'Stack & Queue Implementations', teacher: 'Prof. Alan', link: '#', duration: '2h 00m', views: 445 },
@@ -341,7 +383,7 @@ export const mockBackend = {
     ],
     // School & Parent Features Data
     homework: [
-        { id: 1, subject: 'Mathematics II', title: 'Laplace Transform Exercises', dueDate: '28/05/2026', status: 'Pending', priority: 'High' },
+        { id: 1, subject: 'Computer Science', title: 'Laplace Transform Exercises', dueDate: '28/05/2026', status: 'Pending', priority: 'High' },
         { id: 2, subject: 'Data Structures', title: 'BST Rotation and Traversal', dueDate: '29/05/2026', status: 'Completed', priority: 'Medium' },
         { id: 3, subject: 'Digital Electronics', title: 'Karnaugh Map Minimization', dueDate: '01/06/2026', status: 'Pending', priority: 'Low' },
     ],
@@ -351,7 +393,7 @@ export const mockBackend = {
             attendance: 92,
             homeworkCompletion: 85,
             recentGrades: [
-                { subject: 'Mathematics II', grade: 'A', date: '20/05/2026' },
+                { subject: 'Computer Science', grade: 'A', date: '20/05/2026' },
                 { subject: 'Data Structures', grade: 'B+', date: '18/05/2026' },
                 { subject: 'Digital Electronics', grade: 'A+', date: '15/05/2026' },
             ],
@@ -383,8 +425,8 @@ export const mockBackend = {
 
     // Semester Analytics
     semesterAnalytics: [
-        { sem: 1, sgpa: 8.5, attendance: 82, studyHours: 120, weakSubjects: ['Basic Electrical'], strongSubjects: ['Mathematics I'] },
-        { sem: 2, sgpa: 8.8, attendance: 88, studyHours: 145, weakSubjects: ['Network Analysis'], strongSubjects: ['Data Structures', 'Mathematics II'] },
+        { sem: 1, sgpa: 8.5, attendance: 82, studyHours: 120, weakSubjects: ['Basic Electrical'], strongSubjects: ['Computer Science I'] },
+        { sem: 2, sgpa: 8.8, attendance: 88, studyHours: 145, weakSubjects: ['Network Analysis'], strongSubjects: ['Data Structures', 'Computer Science'] },
     ],
 
     login: async (email, password) => {
@@ -401,7 +443,7 @@ export const mockBackend = {
     },
 
     teachersDiary: [
-        { id: 1, teacher: 'Dr. Bhavana', subject: 'Mathematics II', date: 'May 22, 2026', remark: 'Excellent performance in the integration test. Keep it up!', type: 'Positive', read: true },
+        { id: 1, teacher: 'Dr. Bhavana', subject: 'Computer Science', date: 'May 22, 2026', remark: 'Excellent performance in the integration test. Keep it up!', type: 'Positive', read: true },
         { id: 2, teacher: 'Prof. Alan', subject: 'Data Structures', date: 'May 20, 2026', remark: 'Arrived 10 minutes late to the laboratory session today.', type: 'Warning', read: true },
         { id: 3, teacher: 'Dr. White', subject: 'Digital Electronics', date: 'May 18, 2026', remark: 'Participated very well in the peer tutoring session. Shows great leadership skills.', type: 'Positive', read: false },
         { id: 4, teacher: 'Admin Office', subject: 'General', date: 'May 15, 2026', remark: 'The schedule for the IEEE technical workshop has been released.', type: 'Info', read: true },
@@ -686,5 +728,269 @@ export const mockBackend = {
                 resolve(reportedEvents);
             }, 400);
         });
+    // Class Advisor / Section Data Models for ECE-2A
+    sectionSyllabus: [
+        { id: 1, subject: '1BMATE201 - Applied Mathematics II', teacher: 'Dr. Bhavana', syllabus: 85, expected: 75, status: 'Good' },
+        { id: 2, subject: '1BPHYS202 - Applied Physics', teacher: 'Dr. White', syllabus: 48, expected: 75, status: 'Behind Schedule' },
+        { id: 3, subject: '1BCSPL203 - C Programming Lab', teacher: 'Prof. Alan', syllabus: 65, expected: 75, status: 'Slightly Lagging' },
+        { id: 4, subject: '1BENGN204 - Communication Skills II', teacher: 'Prof. Jones', syllabus: 80, expected: 75, status: 'Good' },
+    ],
+
+    sectionRoster: [
+        { usn: '4VV25EC002', name: 'Bharath P', email: 'bp@vvce', attendance: 63.89, gpa: 6.8, risk: 'High', status: 'Warning Sent', parentEmail: 'abhi@vvce' },
+        { usn: '4VV25EC001', name: 'Bharath Kumar A', email: 'bk@vvce', attendance: 88.50, gpa: 8.9, risk: 'Low', status: 'Optimal', parentEmail: 'parent@vvce' },
+        { usn: '4VV25EC003', name: 'Anagha', email: 'anagha@vvce', attendance: 82.10, gpa: 7.9, risk: 'Low', status: 'Optimal', parentEmail: 'parent@vvce' },
+        { usn: '4VV25EC015', name: 'Rohan Gowda', email: 'rohan@vvce', attendance: 58.20, gpa: 5.4, risk: 'High', status: 'Active', parentEmail: 'parent@vvce' },
+        { usn: '4VV25CS034', name: 'Divya R', email: 'divya@vvce', attendance: 71.45, gpa: 6.1, risk: 'Moderate', status: 'Active', parentEmail: 'parent@vvce' },
+    ],
+
+    compulsoryRemarks: [
+        {
+            id: 'rem-1',
+            studentId: '00000000-0000-0000-0000-000000000002', // Bharath P (bp@vvce)
+            studentName: 'Bharath P',
+            parentEmail: 'abhi@vvce',
+            teacherName: 'Dr. Bhavana',
+            sectionCode: 'ECE-2A',
+            message: 'Academic alert: attendance has dropped to 63.89%. High risk of detention in Applied Mathematics II.',
+            priority: 'critical',
+            isAcknowledged: false,
+            acknowledgedBy: null,
+            acknowledgedAt: null,
+            createdAt: new Date().toISOString()
+        },
+        {
+            id: 'rem-2',
+            studentId: 'mock-student-id', // Rohan Gowda
+            studentName: 'Rohan Gowda',
+            parentEmail: 'parent@vvce',
+            teacherName: 'Dr. Bhavana',
+            sectionCode: 'ECE-2A',
+            message: 'Detention warning: attendance has dropped to 58.20%. Critical risk of registration lockout.',
+            priority: 'critical',
+            isAcknowledged: false,
+            acknowledgedBy: null,
+            acknowledgedAt: null,
+            createdAt: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString() // 36 hours ago!
+        }
+    ],
+
+    vacantSlots: [
+        { id: 'vs1', day: 'Monday', time: '02:00 PM - 03:00 PM', slot: 'Free Slot / Seminar Hall 2' },
+        { id: 'vs2', day: 'Wednesday', time: '11:15 AM - 12:15 PM', slot: 'Free Slot / Seminar Hall A' },
+        { id: 'vs3', day: 'Friday', time: '02:00 PM - 03:00 PM', slot: 'Free Slot / Classroom L-301' }
+    ],
+
+    // Peer-to-Peer Study Buddy Coordinator Data Model
+    studyBuddies: [
+        { id: 'sb-1', studentUsn: '4VV25EC002', studentName: 'Bharath P', mentorUsn: '4VV25EC001', mentorName: 'Bharath Kumar A', subject: '1BMATE201 - Applied Mathematics II', status: 'Active Pairing', improved: false }
+    ],
+
+    // Counseling Tickets
+    counselingTickets: [
+        { id: 't-1', studentName: 'Anonymous Student', usn: 'ECE-2A', topic: 'Academic stress', message: 'Feeling extremely overwhelmed with laboratory workloads and back-to-back quiz schedules.', status: 'Pending Review', date: '2026-05-28T09:00:00Z' },
+        { id: 't-2', studentName: 'Bharath P', usn: '4VV25EC002', topic: 'Hostel permissions', message: 'Requesting permission shift coordination with the hostel warden to allow library access till 10 PM.', status: 'Pending Review', date: '2026-05-29T14:30:00Z' }
+    ],
+
+    // Anonymous Suggestions
+    anonymousSuggestions: [
+        { id: 'sug-1', topic: 'Library seating sockets', message: 'The study cubicles in the ECE library have broken power sockets. Requesting immediate replacement.', status: 'Unresolved', date: '2026-05-28T10:00:00Z' },
+        { id: 'sug-2', topic: 'Hostel hot water delivery', message: 'Hot water availability in Hostel Block C is erratic during early morning hours (6 AM to 7:30 AM).', status: 'Unresolved', date: '2026-05-29T08:15:00Z' }
+    ],
+
+    // Direct Chats history for Counseling
+    counselingChats: {
+        't-1': [
+            { id: 'c-1', sender: 'student', message: 'Feeling extremely overwhelmed with laboratory workloads and back-to-back quiz schedules.', time: 'May 28, 09:00 AM' }
+        ],
+        't-2': [
+            { id: 'c-2', sender: 'student', message: 'Requesting permission shift coordination with the hostel warden to allow library access till 10 PM.', time: 'May 29, 02:30 PM' }
+        ]
+    },
+
+    // Mentoring Logs
+    mentoringLogs: [
+        { id: 'ml-1', date: '24/05/2026', studentName: 'Rohan Gowda', note: 'Met Rohan Gowda. Discussed his morning session attendance drop (currently at 58.20%). Resolved to coordinate directly with the hostel warden to monitor his morning check-out times.' }
+    ],
+
+    // Extracurricular & Innovation Registry Data
+    extracurriculars: {
+        clubsRatio: [
+            { usn: '4VV25EC001', name: 'Bharath Kumar A', club: 'Binary Beasts (Core Leader)', status: 'Active' },
+            { usn: '4VV25EC003', name: 'Anagha', club: 'Zenith Crew (Creative Member)', status: 'Active' },
+            { usn: '4VV25EC002', name: 'Bharath P', club: 'Zenith Crew (Volunteer)', status: 'Active' },
+            { usn: '4VV25EC015', name: 'Rohan Gowda', club: 'None', status: 'Inactive' },
+            { usn: '4VV25CS034', name: 'Divya R', club: 'Binary Beasts (Developer)', status: 'Active' }
+        ],
+        projectPipeline: [
+            { usn: '4VV25EC001', name: 'Bharath Kumar A', project: 'Real-time solar grid tracker sandbox', status: 'Patent Filed ✓' },
+            { usn: '4VV25EC003', name: 'Anagha', project: 'Smart agriculture IoT payload', status: 'Under Sandbox Review' }
+        ]
+    },
+
+    addCompulsoryRemark: (remark) => {
+        const newRem = {
+            id: `rem-${Date.now()}`,
+            priority: 'critical',
+            isAcknowledged: false,
+            acknowledgedBy: null,
+            acknowledgedAt: null,
+            createdAt: new Date().toISOString(),
+            ...remark
+        };
+        mockBackend.compulsoryRemarks.push(newRem);
+        return newRem;
+    },
+
+    acknowledgeRemark: (remarkId, parentName) => {
+        const rem = mockBackend.compulsoryRemarks.find(r => r.id === remarkId);
+        if (rem) {
+            rem.isAcknowledged = true;
+            rem.acknowledgedBy = parentName;
+            rem.acknowledgedAt = new Date().toISOString();
+            return { success: true, remark: rem };
+        }
+        return { success: false, error: 'Remark not found' };
+    },
+
+    allocateRecoveryHour: (subjectId, slotId) => {
+        const subj = mockBackend.sectionSyllabus.find(s => s.id === subjectId);
+        const slot = mockBackend.vacantSlots.find(s => s.id === slotId);
+        if (subj && slot) {
+            subj.syllabus = Math.min(100, subj.syllabus + 8); // boost progress by 8% on recovery session
+            if (subj.syllabus >= subj.expected) {
+                subj.status = 'Good';
+            } else if (subj.syllabus >= subj.expected - 10) {
+                subj.status = 'Slightly Lagging';
+            } else {
+                subj.status = 'Behind Schedule';
+            }
+            // Remove the allocated slot
+            mockBackend.vacantSlots = mockBackend.vacantSlots.filter(s => s.id !== slotId);
+            return { success: true, subject: subj };
+        }
+        return { success: false, error: 'Subject or slot not found' };
+    },
+
+    pairStudyBuddies: (studentUsn, mentorUsn, subjectName) => {
+        const student = mockBackend.sectionRoster.find(s => s.usn === studentUsn);
+        const mentor = mockBackend.sectionRoster.find(s => s.usn === mentorUsn);
+        if (student && mentor) {
+            const newPair = {
+                id: `sb-${Date.now()}`,
+                studentUsn,
+                studentName: student.name,
+                mentorUsn,
+                mentorName: mentor.name,
+                subject: subjectName,
+                status: 'Active Pairing',
+                improved: false
+            };
+            mockBackend.studyBuddies.push(newPair);
+            return { success: true, pair: newPair };
+        }
+        return { success: false, error: 'Student or mentor USN not found in roster' };
+    },
+
+    boostStudyBuddy: (pairId) => {
+        const pair = mockBackend.studyBuddies.find(p => p.id === pairId);
+        if (pair) {
+            pair.improved = true;
+            pair.status = 'Completed (Grade Boosted ✓)';
+            
+            // Boost student's GPA in roster
+            const student = mockBackend.sectionRoster.find(s => s.usn === pair.studentUsn);
+            if (student) {
+                student.gpa = Math.min(10, parseFloat((student.gpa + 0.6).toFixed(2))); // increase GPA by 0.6!
+                student.risk = 'Low';
+                student.status = 'Optimal';
+            }
+            
+            // Reward institutional XP to both
+            mockBackend.gamification.points += 300; // award 300 points to overall class pool
+            return { success: true, pair };
+        }
+        return { success: false, error: 'Study buddy pairing not found' };
+    },
+
+    addMentoringLog: (studentName, noteText) => {
+        const newLog = {
+            id: `ml-${Date.now()}`,
+            date: new Date().toLocaleDateString('en-GB'),
+            studentName,
+            note: noteText
+        };
+        mockBackend.mentoringLogs.push(newLog);
+        return newLog;
+    },
+
+    resolveCounselingTicket: (ticketId) => {
+        const ticket = mockBackend.counselingTickets.find(t => t.id === ticketId);
+        if (ticket) {
+            ticket.status = 'Resolved';
+            return { success: true, ticket };
+        }
+        return { success: false, error: 'Ticket not found' };
+    },
+
+    addCounselingTicket: (ticket) => {
+        const newTicket = {
+            id: `t-${Date.now()}`,
+            status: 'Pending Review',
+            date: new Date().toISOString(),
+            ...ticket
+        };
+        mockBackend.counselingTickets.push(newTicket);
+        
+        // Init empty chat for this ticket
+        mockBackend.counselingChats[newTicket.id] = [
+            { id: `c-${Date.now()}`, sender: 'student', message: ticket.message, time: 'Just now' }
+        ];
+        
+        return newTicket;
+    },
+
+    addAnonymousSuggestion: (topic, message) => {
+        const newSug = {
+            id: `sug-${Date.now()}`,
+            topic,
+            message,
+            status: 'Unresolved',
+            date: new Date().toISOString()
+        };
+        mockBackend.anonymousSuggestions.push(newSug);
+        return newSug;
+    },
+
+    resolveAnonymousSuggestion: (id) => {
+        const sug = mockBackend.anonymousSuggestions.find(s => s.id === id);
+        if (sug) {
+            sug.status = 'Resolved';
+            return { success: true, suggestion: sug };
+        }
+        return { success: false, error: 'Suggestion not found' };
+    },
+
+    escalateAnonymousSuggestion: (id) => {
+        const sug = mockBackend.anonymousSuggestions.find(s => s.id === id);
+        if (sug) {
+            sug.status = 'Escalated to HOD';
+            return { success: true, suggestion: sug };
+        }
+        return { success: false, error: 'Suggestion not found' };
+    },
+
+    addCounselingChatMessage: (ticketId, sender, message) => {
+        if (!mockBackend.counselingChats[ticketId]) {
+            mockBackend.counselingChats[ticketId] = [];
+        }
+        const newMsg = {
+            id: `c-${Date.now()}`,
+            sender,
+            message,
+            time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+        };
+        mockBackend.counselingChats[ticketId].push(newMsg);
+        return newMsg;
     }
 };

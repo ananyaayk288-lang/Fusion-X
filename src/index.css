@@ -35,6 +35,7 @@
   --sidebar-bg: #09090b;
   --sidebar-text: #a1a1aa;
   --sidebar-active: #ffffff;
+  --lockout-overlay-bg: rgba(3, 7, 18, 0.88);
 
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
@@ -54,7 +55,20 @@
   --text-primary: #111827;
   --text-secondary: #4b5563;
   --bg-card: var(--bg-primary);
-  --shadow-hard: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-hard: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+  --text-inverse: #ffffff;
+
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #4b5563;
+  --sidebar-active: #818cf8;
+  --lockout-overlay-bg: rgba(243, 244, 246, 0.85);
+
+  --accent-primary: #4f46e5;
+  --accent-secondary: #7c3aed;
+  --accent-action: #d97706;
+  --success: #059669;
+  --error: #dc2626;
 }
 
 body {
@@ -129,6 +143,20 @@ body {
 .animate-scale {
   animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   opacity: 0;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 /* Stagger Delays */

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { mockBackend } from '../../services/mockBackend';
@@ -11,7 +11,8 @@ import {
     UserCheck, Timer, Bell, Sun, Moon, Target, Trophy, Briefcase,
     Pencil, Clock, Hash, BrainCircuit, Calculator, Activity,
     Flame, StickyNote, CheckCircle2, Shield, GitBranch, ClipboardList,
-    Home, Wallet, ShieldAlert, TrendingUp, BookOpenCheck, Search, Sparkles, ShieldCheck
+    Home, Wallet, ShieldAlert, TrendingUp, BookOpenCheck, Search, Sparkles, ShieldCheck, Sliders,
+    Zap, MapPin, Radio
 } from 'lucide-react';
 import '../../components/layout/DashboardLayout.css';
 import AIChatWidget from '../../components/layout/AIChatWidget';
@@ -24,14 +25,23 @@ const DashboardLayout = ({ children }) => {
     const { theme, toggleTheme } = useTheme();
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [liveUnreadCount, setLiveUnreadCount] = useState(0);
 
+    const currentView = searchParams ? searchParams.get('view') : null;
+
     React.useEffect(() => {
-        if (!loading && !user) {
-            router.push('/login');
+        if (!loading) {
+            if (!user) {
+                router.push('/login');
+            } else if (user.role === 'parent' && pathname === '/dashboard') {
+                router.push('/dashboard/parent-dashboard');
+            } else if (user.role !== 'parent' && pathname.startsWith('/dashboard/parent-dashboard')) {
+                router.push('/dashboard');
+            }
         }
-    }, [user, loading, router]);
+    }, [user, loading, router, pathname]);
 
     React.useEffect(() => {
         if (loading || !user) return;
@@ -122,7 +132,11 @@ const DashboardLayout = ({ children }) => {
         { label: 'Discussion Forum', icon: <Hash size={20} />, path: '/dashboard/chat' },
         { label: 'Answer Analysis', icon: <BarChart2 size={20} />, path: '/dashboard/analysis' },
         { label: 'Project Hub', icon: <GitBranch size={20} />, path: '/dashboard/projects' },
+        { label: 'Campus Wallet', icon: <Wallet size={20} />, path: '/dashboard/wallet' },
+        { label: 'Library & Borrowing', icon: <BookOpen size={20} />, path: '/dashboard/borrowing' },
+        { label: 'Campus Tracker', icon: <MapPin size={20} />, path: '/dashboard/campus-tracker' },
         { label: 'Prepcare', icon: <Sparkles size={20} />, path: '/dashboard/ai-bot' },
+        { label: 'Clubs Hub', icon: <Trophy size={20} />, path: '/dashboard/clubs' },
         { type: 'divider' },
         { label: 'Leaderboard & XP', icon: <Trophy size={20} />, path: '/dashboard/leaderboard' },
         { label: 'Activity Feed', icon: <Activity size={20} />, path: '/dashboard/feed' },
@@ -144,22 +158,66 @@ const DashboardLayout = ({ children }) => {
         { label: 'Safety Monitor', icon: <ShieldAlert size={20} />, path: '/dashboard/safety' },
         { label: 'Teacher\'s Diary', icon: <BookOpenCheck size={20} />, path: '/dashboard/teachers-diary' },
         { label: 'Smart Exam Predictor', icon: <BrainCircuit size={20} />, path: '/dashboard/predictor' },
+        { label: 'Clubs Hub', icon: <Trophy size={20} />, path: '/dashboard/clubs' },
     ];
 
-    let navItems = user?.role === 'parent' ? parentNav : studentNav;
-
-    // Show Accreditation link to everyone for testing
-    navItems = [
-        ...navItems.slice(0, 2),
+    const teacherNav = [
+        { label: 'Subject Portal', icon: <Layout size={20} />, path: '/dashboard?view=subject' },
+        { label: 'Event Ecosystem', icon: <Target size={20} />, path: '/dashboard/events' },
         { label: 'Accreditation', icon: <ShieldCheck size={20} />, path: '/dashboard/accreditation' },
-        ...navItems.slice(2)
+        ...(user?.isClassTeacher ? [
+            { label: 'Class Advisor Tower', icon: <Sliders size={20} />, path: '/dashboard?view=advisor' }
+        ] : []),
+        { label: 'Assignment Hub', icon: <BookOpenCheck size={20} />, path: '/dashboard/assignments' },
+        { label: 'Attendance List', icon: <Calendar size={20} />, path: '/dashboard/attendance' },
+        { label: 'Timetable', icon: <Clock size={20} />, path: '/dashboard/timetable' },
+        { label: 'Notes & PYQs', icon: <BookOpen size={20} />, path: '/dashboard/notes' },
+        { type: 'divider' },
+        { label: 'Doubt Solving', icon: <MessageSquare size={20} />, path: '/dashboard/doubts' },
+        { label: 'Discussion Forum', icon: <Hash size={20} />, path: '/dashboard/chat' },
+        { label: 'Answer Analysis', icon: <BarChart2 size={20} />, path: '/dashboard/analysis' },
+        { label: 'Project Hub', icon: <GitBranch size={20} />, path: '/dashboard/projects' },
+        { label: 'Clubs Hub', icon: <Trophy size={20} />, path: '/dashboard/clubs' },
+        { type: 'divider' },
+        { label: 'Teacher\'s Diary', icon: <BookOpenCheck size={20} />, path: '/dashboard/teachers-diary' },
+        { label: 'Paper Generator', icon: <ClipboardList size={20} />, path: '/dashboard/paper-generator' },
+        { label: 'Complaint Box', icon: <Shield size={20} />, path: '/dashboard/complaints' },
     ];
 
-    const currentLabel = navItems
+    const adminNav = [
+        { label: 'System Control Tower', icon: <Layout size={20} />, path: '/dashboard' },
+        { label: 'Event Ecosystem', icon: <Target size={20} />, path: '/dashboard/events' },
+        { label: 'Accreditation', icon: <ShieldCheck size={20} />, path: '/dashboard/accreditation' },
+        { label: 'AI Footfall & Proxy-Risk Audit', icon: <Calendar size={20} />, path: '/dashboard/attendance' },
+        { label: 'Tech & Innovation Registry', icon: <GitBranch size={20} />, path: '/dashboard/projects' },
+        { label: 'Escalation Desk', icon: <Shield size={20} />, path: '/dashboard/complaints' },
+        { type: 'divider' },
+        { label: 'VVCE Microgrid Optimizer', icon: <Zap size={20} />, path: '/dashboard/microgrid' },
+        { label: 'Telemetry & Sensor Map', icon: <MapPin size={20} />, path: '/dashboard/telemetry' },
+        { label: 'System Rules Configuration', icon: <Sliders size={20} />, path: '/dashboard/rules-config' },
+        { label: 'Global Broadcast Tower', icon: <Radio size={20} />, path: '/dashboard/broadcast' },
+    ];
+
+    const navItems = user?.role === 'parent' 
+        ? parentNav 
+        : user?.role === 'admin'
+            ? adminNav
+            : user?.role === 'teacher' 
+                ? teacherNav 
+                : studentNav;
+
+    const activeItem = navItems
         .filter(i => i.path)
-        .slice()
-        .sort((a, b) => b.path.length - a.path.length)
-        .find(i => pathname.startsWith(i.path))?.label || 'Dashboard';
+        .find(i => {
+            if (i.path.includes('?view=advisor')) {
+                return pathname === '/dashboard' && currentView === 'advisor';
+            }
+            if (i.path.includes('?view=subject')) {
+                return pathname === '/dashboard' && currentView !== 'advisor';
+            }
+            return pathname === i.path;
+        });
+    const currentLabel = activeItem?.label || 'Dashboard';
 
     const notifications = mockBackend.notifications || [];
     const unreadCount = (notifications.filter(n => !n.read).length) + liveUnreadCount;
@@ -177,20 +235,30 @@ const DashboardLayout = ({ children }) => {
                 </div>
 
                 <nav className="sidebar-nav">
-                    {navItems.map((item, idx) => (
-                        item.type === 'divider' ? (
+                    {navItems.map((item, idx) => {
+                        const isCurrentActive = (() => {
+                            if (item.path?.includes('?view=advisor')) {
+                                return pathname === '/dashboard' && currentView === 'advisor';
+                            }
+                            if (item.path?.includes('?view=subject')) {
+                                return pathname === '/dashboard' && currentView !== 'advisor';
+                            }
+                            return pathname === item.path;
+                        })();
+
+                        return item.type === 'divider' ? (
                             <div key={`divider-${idx}`} className="nav-divider" />
                         ) : (
                             <div
-                                key={item.path}
-                                className={`nav-item ${pathname === item.path ? 'active' : ''}`}
+                                key={`${item.path}-${idx}`}
+                                className={`nav-item ${isCurrentActive ? 'active' : ''}`}
                                 onClick={() => { router.push(item.path); setSidebarOpen(false); }}
                             >
                                 <div className="icon-container">{item.icon}</div>
                                 <span className="sidebar-text">{item.label}</span>
                             </div>
-                        )
-                    ))}
+                        );
+                    })}
                 </nav>
             </aside>
 

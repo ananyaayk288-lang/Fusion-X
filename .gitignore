@@ -47,3 +47,9 @@ coverage/
 
 # Face Recognition Dataset
 Facerecognition/dataset/
+
+# Python Virtual Environments & Cache
+**/venv/
+**/.venv/
+**/__pycache__/
+*.pyc

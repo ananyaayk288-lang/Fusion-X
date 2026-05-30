@@ -7,14 +7,35 @@ import { ShieldCheck, Cpu, Zap, Lock, Globe, ArrowRight, GraduationCap, BarChart
 import './LoginPage.css';
 
 const LoginPage = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('bp@vvce');
+    const [password, setPassword] = useState('bp');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [role, setRole] = useState('STUDENT'); // Role toggle: STUDENT / FACULTY
+    const [loginRole, setLoginRole] = useState('STUDENT'); // Roles: STUDENT, FACULTY, ADVISOR
 
     const { login } = useAuth();
     const router = useRouter();
+
+    const handleRoleSelect = (selectedRole) => {
+        setLoginRole(selectedRole);
+        setError('');
+        if (selectedRole === 'STUDENT') {
+            setEmail('bp@vvce');
+            setPassword('bp');
+        } else if (selectedRole === 'PARENT') {
+            setEmail('abhi@vvce');
+            setPassword('abhi');
+        } else if (selectedRole === 'FACULTY') {
+            setEmail('bhav@vvce');
+            setPassword('bhav');
+        } else if (selectedRole === 'ADVISOR') {
+            setEmail('bhav@vvce');
+            setPassword('bhav');
+        } else if (selectedRole === 'ADMIN') {
+            setEmail('admin@vvce');
+            setPassword('admin');
+        }
+    };
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -24,9 +45,13 @@ const LoginPage = () => {
         const result = await login(email, password);
 
         if (result.success) {
-            router.push('/dashboard');
+            if (result.user?.role === 'parent') {
+                router.push('/dashboard/parent-dashboard');
+            } else {
+                router.push('/dashboard');
+            }
         } else {
-            setError(result.error);
+            setError(result.error || 'Invalid credentials');
         }
         setLoading(false);
     };
@@ -62,7 +87,49 @@ const LoginPage = () => {
                             <p> </p>
                         </div>
 
-
+                        {/* Premium Interactive Portal Selector */}
+                        <div className="role-selector" style={{ gridTemplateColumns: 'repeat(5, 1fr)', marginBottom: '2.5rem' }}>
+                            <button 
+                                type="button"
+                                className={`role-pill ${loginRole === 'STUDENT' ? 'active' : ''}`}
+                                onClick={() => handleRoleSelect('STUDENT')}
+                                style={{ fontSize: '0.62rem', letterSpacing: '0px', whiteSpace: 'nowrap', padding: '8px 2px' }}
+                            >
+                                Student
+                            </button>
+                            <button 
+                                type="button"
+                                className={`role-pill ${loginRole === 'PARENT' ? 'active' : ''}`}
+                                onClick={() => handleRoleSelect('PARENT')}
+                                style={{ fontSize: '0.62rem', letterSpacing: '0px', whiteSpace: 'nowrap', padding: '8px 2px' }}
+                            >
+                                Parent
+                            </button>
+                            <button 
+                                type="button"
+                                className={`role-pill ${loginRole === 'FACULTY' ? 'active' : ''}`}
+                                onClick={() => handleRoleSelect('FACULTY')}
+                                style={{ fontSize: '0.62rem', letterSpacing: '0px', whiteSpace: 'nowrap', padding: '8px 2px' }}
+                            >
+                                Faculty
+                            </button>
+                            <button 
+                                type="button"
+                                className={`role-pill ${loginRole === 'ADVISOR' ? 'active' : ''}`}
+                                onClick={() => handleRoleSelect('ADVISOR')}
+                                style={{ fontSize: '0.62rem', letterSpacing: '0px', whiteSpace: 'nowrap', padding: '8px 2px' }}
+                            >
+                                Advisor
+                            </button>
+                            <button 
+                                type="button"
+                                className={`role-pill ${loginRole === 'ADMIN' ? 'active' : ''}`}
+                                onClick={() => handleRoleSelect('ADMIN')}
+                                style={{ fontSize: '0.62rem', letterSpacing: '0px', whiteSpace: 'nowrap', padding: '8px 2px' }}
+                            >
+                                Admin
+                            </button>
+                        </div>
 
                         <form onSubmit={handleLogin} className="sync-form">
                             <div className="input-group">

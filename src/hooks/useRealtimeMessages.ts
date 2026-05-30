@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { createClient } from '../utils/supabase/client';
 
 export interface Message {
@@ -15,7 +15,7 @@ export interface Message {
  */
 export function useRealtimeMessages(groupId: string) {
     const [messages, setMessages] = useState<Message[]>([]);
-    const supabase = createClient();
+    const supabase = useMemo(() => createClient(), []);
 
     useEffect(() => {
         if (!groupId) return;

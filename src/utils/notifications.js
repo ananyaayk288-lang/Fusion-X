@@ -16,7 +16,7 @@ export async function requestNotificationPermission() {
         console.log(`[Notification Service] Permission status: ${permission}`);
         return permission;
     } catch (error) {
-        console.error('[Notification Service] Error requesting permission:', error);
+        console.warn('[Notification Service] Error requesting permission:', error.message || error);
         return 'denied';
     }
 }
@@ -35,7 +35,7 @@ export async function registerServiceWorker() {
         console.log('[Notification Service] Service Worker registered successfully:', registration.scope);
         return registration;
     } catch (error) {
-        console.error('[Notification Service] Service Worker registration failed:', error);
+        console.warn('[Notification Service] Service Worker registration failed:', error.message || error);
         return null;
     }
 }
@@ -82,6 +82,6 @@ export async function showLocalNotification(title, options = {}) {
     try {
         new Notification(title, defaultOptions);
     } catch (e) {
-        console.error('[Notification Service] Fallback notification failed:', e);
+        console.warn('[Notification Service] Fallback notification failed:', e.message || e);
     }
 }

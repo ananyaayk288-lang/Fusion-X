@@ -703,58 +703,88 @@ INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, role,
 VALUES 
 -- bk@vvce (Student - bk)
 ('00000000-0000-0000-0000-000000000001', 'bk@vvce', '$2a$10$YeKwh0RXYyQ44KbWfOw4R.eRMX/kpopbaBz20YzxcgxaUBO7cng3W', now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"bharath kumar a","role":"student"}', now(), now(), 'authenticated', ''),
--- bp@vvce (Student - bp)
-('00000000-0000-0000-0000-000000000002', 'bp@vvce', '$2a$10$Y4w6QA7w8.0HXxQGPY0i3OLrI6.14Ojw0D3wFUUzzx.d/ZLQD3g2u', now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"bharath p","role":"student"}', now(), now(), 'authenticated', ''),
--- anagha@vvce (Student - anagha)
-('00000000-0000-0000-0000-000000000003', 'anagha@vvce', '$2a$10$wx44a16VcC1QgvCvP.uwLemHBbWS4mi7rYI7bd0goJoqSWIxFq9Aa', now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"anagha","role":"student"}', now(), now(), 'authenticated', ''),
+-- ananya@vvce (Student - ananya)
+('00000000-0000-0000-0000-000000000002', 'ananya@vvce', '$2a$10$Y4w6QA7w8.0HXxQGPY0i3OLrI6.14Ojw0D3wFUUzzx.d/ZLQD3g2u', now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"ananya yk","role":"student"}', now(), now(), 'authenticated', ''),
+-- riddhi@vvce (Student - riddhi)
+('00000000-0000-0000-0000-000000000003', 'riddhi@vvce', '$2a$10$wx44a16VcC1QgvCvP.uwLemHBbWS4mi7rYI7bd0goJoqSWIxFq9Aa', now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"riddhi","role":"student"}', now(), now(), 'authenticated', ''),
 -- bhav@vvce (Maths Teacher - bhav)
 ('00000000-0000-0000-0000-000000000004', 'bhav@vvce', '$2a$10$lzLKX1OS/lBqqqGkjd9kEut/Ye7BFbHUldo91bj60BMBofZWHVDDq', now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"bhavana","role":"teacher"}', now(), now(), 'authenticated', ''),
 -- abhi@vvce (Parent - abhi)
 ('00000000-0000-0000-0000-000000000005', 'abhi@vvce', '$2a$10$EEIBm91s0h5pPZAjwabjpOhdJLyLezF6LDASyIMV/ex6shNMiIjR2', now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"abhi","role":"parent"}', now(), now(), 'authenticated', ''),
 -- preksha@vvce (Parent - preksha)
-('00000000-0000-0000-0000-000000000006', 'preksha@vvce', '$2a$10$f8JIR6MBG71C5hVTYcsG0uTyPsWCZN0r.u5m2rdxCkI1T/aB2SN2q', now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"preksha","role":"parent"}', now(), now(), 'authenticated', '')
+('00000000-0000-0000-0000-000000000006', 'preksha@vvce', '$2a$10$f8JIR6MBG71C5hVTYcsG0uTyPsWCZN0r.u5m2rdxCkI1T/aB2SN2q', now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"preksha","role":"parent"}', now(), now(), 'authenticated', ''),
+-- rishith@vvce (Student - rishith)
+('00000000-0000-0000-0000-000000000007', 'rishith@vvce', '$2a$10$wx44a16VcC1QgvCvP.uwLemHBbWS4mi7rYI7bd0goJoqSWIxFq9Aa', now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"rishith","role":"student"}', now(), now(), 'authenticated', ''),
+-- bp@vvce (Student - bp)
+('00000000-0000-0000-0000-000000000008', 'bp@vvce', crypt('bp', gen_salt('bf')), now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"bharath p","role":"student"}', now(), now(), 'authenticated', ''),
+-- anagha@vvce (Student - anagha)
+('00000000-0000-0000-0000-000000000009', 'anagha@vvce', crypt('anagha', gen_salt('bf')), now(), 'authenticated', '{"provider":"email","providers":["email"]}', '{"full_name":"anagha","role":"student"}', now(), now(), 'authenticated', '')
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. Explicitly override profiles roles to match exactly (overriding trigger's default 'student' value if needed)
-UPDATE public.profiles SET role = 'student' WHERE id IN ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000003');
+UPDATE public.profiles SET role = 'student' WHERE id IN ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000009');
 UPDATE public.profiles SET role = 'teacher' WHERE id = '00000000-0000-0000-0000-000000000004';
 UPDATE public.profiles SET role = 'parent' WHERE id IN ('00000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000006');
 
 -- 3. Link parent-student relations
 INSERT INTO public.parent_student (parent_id, student_id)
 VALUES 
-('00000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000002'), -- abhi -> bp
-('00000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000002')  -- preksha -> bp
+('00000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000002'), -- abhi -> ananya
+('00000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000002')  -- preksha -> ananya
 ON CONFLICT DO NOTHING;
 
--- 4. Seed initial attendance for bp@vvce (92%)
+-- 4. Seed initial attendance for student accounts
 INSERT INTO public.attendance (student_id, course, date, day, present, total, sem)
 VALUES 
 ('00000000-0000-0000-0000-000000000002', '1BMATE201 - Applied Mathematics - II for EE Stream', '20-05-2026', 'Wednesday', 1, 1, '2 - Semester'),
 ('00000000-0000-0000-0000-000000000002', '1BMATE201 - Applied Mathematics - II for EE Stream', '21-05-2026', 'Thursday', 1, 1, '2 - Semester'),
-('00000000-0000-0000-0000-000000000002', '1BMATE201 - Applied Mathematics - II for EE Stream', '22-05-2026', 'Friday', 0, 1, '2 - Semester')
+('00000000-0000-0000-0000-000000000002', '1BMATE201 - Applied Mathematics - II for EE Stream', '22-05-2026', 'Friday', 0, 1, '2 - Semester'),
+('00000000-0000-0000-0000-000000000008', '1BMATE201 - Applied Mathematics - II for EE Stream', '20-05-2026', 'Wednesday', 1, 1, '2 - Semester'),
+('00000000-0000-0000-0000-000000000008', '1BMATE201 - Applied Mathematics - II for EE Stream', '21-05-2026', 'Thursday', 1, 1, '2 - Semester'),
+('00000000-0000-0000-0000-000000000008', '1BMATE201 - Applied Mathematics - II for EE Stream', '22-05-2026', 'Friday', 0, 1, '2 - Semester')
 ON CONFLICT DO NOTHING;
 
--- 5. Seed timetables for bp@vvce
+-- 5. Seed timetables for student accounts
 INSERT INTO public.timetables (student_id, subject, day, time, room)
 VALUES
 ('00000000-0000-0000-0000-000000000002', '1BMATE201 - Applied Mathematics - II', 'Monday', '09:00 AM - 10:00 AM', 'L-301'),
 ('00000000-0000-0000-0000-000000000002', '1BPLCO203 - Introduction to C Programming', 'Monday', '10:15 AM - 11:15 AM', 'CS-Lab'),
-('00000000-0000-0000-0000-000000000002', '1BPHYT202 - Applied Physics', 'Tuesday', '11:30 AM - 12:30 PM', 'Physics-Lab')
+('00000000-0000-0000-0000-000000000002', '1BPHYT202 - Applied Physics', 'Tuesday', '11:30 AM - 12:30 PM', 'Physics-Lab'),
+('00000000-0000-0000-0000-000000000008', '1BMATE201 - Applied Mathematics - II', 'Monday', '09:00 AM - 10:00 AM', 'L-301'),
+('00000000-0000-0000-0000-000000000008', '1BPLCO203 - Introduction to C Programming', 'Monday', '10:15 AM - 11:15 AM', 'CS-Lab'),
+('00000000-0000-0000-0000-000000000008', '1BPHYT202 - Applied Physics', 'Tuesday', '11:30 AM - 12:30 PM', 'Physics-Lab'),
+('00000000-0000-0000-0000-000000000003', '1BMATE201 - Applied Mathematics - II', 'Monday', '09:00 AM - 10:00 AM', 'L-301'),
+('00000000-0000-0000-0000-000000000003', '1BPLCO203 - Introduction to C Programming', 'Monday', '10:15 AM - 11:15 AM', 'CS-Lab'),
+('00000000-0000-0000-0000-000000000003', '1BPHYT202 - Applied Physics', 'Tuesday', '11:30 AM - 12:30 PM', 'Physics-Lab'),
+('00000000-0000-0000-0000-000000000009', '1BMATE201 - Applied Mathematics - II', 'Monday', '09:00 AM - 10:00 AM', 'L-301'),
+('00000000-0000-0000-0000-000000000009', '1BPLCO203 - Introduction to C Programming', 'Monday', '10:15 AM - 11:15 AM', 'CS-Lab'),
+('00000000-0000-0000-0000-000000000009', '1BPHYT202 - Applied Physics', 'Tuesday', '11:30 AM - 12:30 PM', 'Physics-Lab')
 ON CONFLICT DO NOTHING;
 
--- 6. Seed exams for bp@vvce
+-- 6. Seed exams for student accounts
 INSERT INTO public.exams (student_id, subject, type, date, time)
 VALUES
 ('00000000-0000-0000-0000-000000000002', '1BMATE201 - Applied Mathematics - II', 'Internals 1', '15-06-2026', '10:00 AM'),
-('00000000-0000-0000-0000-000000000002', '1BPLCO203 - Introduction to C Programming', 'Final Exam', '22-06-2026', '02:00 PM')
+('00000000-0000-0000-0000-000000000002', '1BPLCO203 - Introduction to C Programming', 'Final Exam', '22-06-2026', '02:00 PM'),
+('00000000-0000-0000-0000-000000000008', '1BMATE201 - Applied Mathematics - II', 'Internals 1', '15-06-2026', '10:00 AM'),
+('00000000-0000-0000-0000-000000000008', '1BPLCO203 - Introduction to C Programming', 'Final Exam', '22-06-2026', '02:00 PM'),
+('00000000-0000-0000-0000-000000000003', '1BMATE201 - Applied Mathematics - II', 'Internals 1', '15-06-2026', '10:00 AM'),
+('00000000-0000-0000-0000-000000000003', '1BPLCO203 - Introduction to C Programming', 'Final Exam', '22-06-2026', '02:00 PM'),
+('00000000-0000-0000-0000-000000000009', '1BMATE201 - Applied Mathematics - II', 'Internals 1', '15-06-2026', '10:00 AM'),
+('00000000-0000-0000-0000-000000000009', '1BPLCO203 - Introduction to C Programming', 'Final Exam', '22-06-2026', '02:00 PM')
 ON CONFLICT DO NOTHING;
 
--- 7. Seed quizzes for bp@vvce
+-- 7. Seed quizzes for student accounts
 INSERT INTO public.quizzes (student_id, subject, title, score, total, date)
 VALUES
 ('00000000-0000-0000-0000-000000000002', '1BMATE201 - Applied Mathematics - II', 'Unit Test 1', '8', '10', '12-05-2026'),
-('00000000-0000-0000-0000-000000000002', '1BPLCO203 - Introduction to C Programming', 'Quiz 1', '9', '10', '19-05-2026')
+('00000000-0000-0000-0000-000000000002', '1BPLCO203 - Introduction to C Programming', 'Quiz 1', '9', '10', '19-05-2026'),
+('00000000-0000-0000-0000-000000000008', '1BMATE201 - Applied Mathematics - II', 'Unit Test 1', '8', '10', '12-05-2026'),
+('00000000-0000-0000-0000-000000000008', '1BPLCO203 - Introduction to C Programming', 'Quiz 1', '9', '10', '19-05-2026'),
+('00000000-0000-0000-0000-000000000003', '1BMATE201 - Applied Mathematics - II', 'Unit Test 1', '8', '10', '12-05-2026'),
+('00000000-0000-0000-0000-000000000003', '1BPLCO203 - Introduction to C Programming', 'Quiz 1', '9', '10', '19-05-2026'),
+('00000000-0000-0000-0000-000000000009', '1BMATE201 - Applied Mathematics - II', 'Unit Test 1', '8', '10', '12-05-2026'),
+('00000000-0000-0000-0000-000000000009', '1BPLCO203 - Introduction to C Programming', 'Quiz 1', '9', '10', '19-05-2026')
 ON CONFLICT DO NOTHING;
 
 -- 8. Seed notices
@@ -763,4 +793,91 @@ VALUES
 ('Internals Notice', 'Semester 2 first internal assessment will commence from 15th June 2026. Attendance is mandatory.', '24-05-2026', 'all'),
 ('Parent Teacher Association Meeting', 'PTA meeting scheduled for 30th May 2026 at 10 AM in the main auditorium.', '24-05-2026', 'parent')
 ON CONFLICT DO NOTHING;
+
+
+-- -------------------------------------------------------------------------
+-- PHASE 10: RANDOMIZED CAMERA ATTENDANCE LIFECYCLE SCHEMA
+-- -------------------------------------------------------------------------
+
+-- 10.1 Create the attendance snapshots table
+CREATE TABLE IF NOT EXISTS public.attendance_snapshots (
+    snapshot_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    slot_id UUID REFERENCES public.timetables(id) ON DELETE CASCADE,
+    check_number INT NOT NULL,              -- 1 to 5 tracking index
+    detected_students UUID[],               -- Array of student UUIDs detected in this check
+    captured_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 10.2 Create the core session ledger table
+CREATE TABLE IF NOT EXISTS public.attendance_session_ledger (
+    ledger_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    slot_id UUID NOT NULL REFERENCES public.timetables(id) ON DELETE CASCADE,
+    session_date DATE DEFAULT CURRENT_DATE,
+    detected_count INT DEFAULT 0,               -- number of times student was detected in snapshots
+    total_checks INT DEFAULT 5,                 -- total checks run in this session
+    final_status VARCHAR(10) DEFAULT 'ABSENT',  -- 'PRESENT', 'ABSENT', 'LATE'
+    is_finalised_by_teacher BOOLEAN DEFAULT FALSE,
+    absence_reason TEXT,                        -- Filed by student if absent
+    reason_status VARCHAR(15) DEFAULT 'PENDING', -- 'PENDING', 'APPROVED', 'REJECTED'
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE (student_id, slot_id, session_date)
+);
+
+-- 10.3 Create optimized indices for sorting and filtering
+CREATE INDEX IF NOT EXISTS idx_ledger_sorting 
+ON public.attendance_session_ledger (slot_id, session_date, final_status DESC);
+
+CREATE INDEX IF NOT EXISTS idx_ledger_student_date
+ON public.attendance_session_ledger (student_id, session_date);
+
+-- 10.4 Enable Row Level Security (RLS)
+ALTER TABLE public.attendance_snapshots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attendance_session_ledger ENABLE ROW LEVEL SECURITY;
+
+-- 10.5 Define RLS Policies for snapshots
+DROP POLICY IF EXISTS select_snapshots ON public.attendance_snapshots;
+CREATE POLICY select_snapshots ON public.attendance_snapshots
+    FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS insert_snapshots ON public.attendance_snapshots;
+CREATE POLICY insert_snapshots ON public.attendance_snapshots
+    FOR INSERT TO authenticated WITH CHECK (public.is_teacher() OR public.is_admin());
+
+-- 10.6 Define RLS Policies for ledger
+DROP POLICY IF EXISTS select_ledger ON public.attendance_session_ledger;
+CREATE POLICY select_ledger ON public.attendance_session_ledger
+    FOR SELECT TO authenticated 
+    USING (auth.uid() = student_id OR public.is_teacher() OR public.is_admin());
+
+DROP POLICY IF EXISTS insert_ledger ON public.attendance_session_ledger;
+CREATE POLICY insert_ledger ON public.attendance_session_ledger
+    FOR INSERT TO authenticated 
+    WITH CHECK (public.is_teacher() OR public.is_admin());
+
+DROP POLICY IF EXISTS update_ledger ON public.attendance_session_ledger;
+CREATE POLICY update_ledger ON public.attendance_session_ledger
+    FOR UPDATE TO authenticated 
+    USING (auth.uid() = student_id OR public.is_teacher() OR public.is_admin())
+    WITH CHECK (auth.uid() = student_id OR public.is_teacher() OR public.is_admin());
+
+-- 10.7 Enable Realtime Replication for ledger and snapshots
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime'
+    ) THEN
+        CREATE PUBLICATION supabase_realtime;
+    END IF;
+    
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance_snapshots;
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance_session_ledger;
+EXCEPTION
+    WHEN duplicate_object THEN
+        -- Safely ignore if table is already added to publication
+        NULL;
+    WHEN OTHERS THEN
+        NULL;
+END $$;
+
 

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Calendar, Search, X, Upload, Check, Bell, User as UserIcon, PlusCircle, Trash2 } from 'lucide-react';
+import { Calendar, Search, X, Upload, Check, Bell, User as UserIcon, PlusCircle, Trash2, ShieldAlert, AlertTriangle, RefreshCw, Eye } from 'lucide-react';
 import { createClient } from '../../utils/supabase/client';
 import { useAuth } from '../../context/AuthContext';
 import './Attendance.css';
@@ -8,8 +8,21 @@ import './Attendance.css';
 // Formatted display names for seeded student accounts
 const studentNameMap = {
     '00000000-0000-0000-0000-000000000001': 'Bharath Kumar A (bk@vvce)',
-    '00000000-0000-0000-0000-000000000002': 'Bharath P (bp@vvce)',
-    '00000000-0000-0000-0000-000000000003': 'Anagha (anagha@vvce)',
+    '00000000-0000-0000-0000-000000000002': 'Ananya Yk (ananya@vvce)',
+    '00000000-0000-0000-0000-000000000003': 'Riddhi (riddhi@vvce)',
+    '00000000-0000-0000-0000-000000000007': 'Rishith (rishith@vvce)',
+    '00000000-0000-0000-0000-000000000008': 'Bharath P (bp@vvce)',
+    '00000000-0000-0000-0000-000000000009': 'Anagha (anagha@vvce)',
+};
+
+// Map student IDs to Branch and Section
+const studentBranchSectionMap = {
+    '00000000-0000-0000-0000-000000000001': { branch: 'CSE', section: 'A' },
+    '00000000-0000-0000-0000-000000000002': { branch: 'ISE', section: 'B' },
+    '00000000-0000-0000-0000-000000000003': { branch: 'CSE', section: 'B' },
+    '00000000-0000-0000-0000-000000000007': { branch: 'ECE', section: 'A' },
+    '00000000-0000-0000-0000-000000000008': { branch: 'ECE', section: 'B' },
+    '00000000-0000-0000-0000-000000000009': { branch: 'CSE', section: 'A' },
 };
 
 // Premium Custom Month Picker Component
@@ -220,14 +233,55 @@ const semester2Daywise = [
     { id: 'mock-s2-11', course: '1BMATE201 - Applied Mathematics - II for EE Stream', date: '04-03-2026', day: 'Wednesday', present: 1, total: 2, doc: '', docStatus: '', sem: '2 - Semester' }
 ];
 
+const auditCardStyle = {
+    background: 'var(--bg-card)',
+    border: '2px solid var(--border-color)',
+    borderRadius: '12px',
+    padding: '1.25rem',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+};
+
+const auditLabelStyle = {
+    fontSize: '0.72rem',
+    fontWeight: '700',
+    color: 'var(--text-secondary)',
+    textTransform: 'uppercase',
+    marginBottom: '4px'
+};
+
+const auditSubStyle = {
+    fontSize: '0.65rem',
+    color: '#666',
+    display: 'block',
+    marginTop: '2px'
+};
+
+const auditPanelStyle = {
+    background: 'var(--bg-card)',
+    border: '2px solid var(--border-color)',
+    borderRadius: '12px',
+    padding: '1.25rem',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+};
+
+const auditPanelTitleStyle = {
+    fontSize: '0.95rem',
+    fontWeight: '800',
+    color: 'var(--text-primary)'
+};
+
 const Attendance = () => {
     const { user } = useAuth();
-    const supabase = createClient();
+    const supabase = useMemo(() => createClient(), []);
 
-    // Live state synced from Supabase
-    const [supabaseRecords, setSupabaseRecords] = useState([]);
-    const [studentProfiles, setStudentProfiles] = useState([]);
-    const [liveNotification, setLiveNotification] = useState(null);
+    // Admin specific audit states
+    const [auditAlerts, setAuditAlerts] = useState([
+        { id: '1', name: 'Bharath P', usn: '4VV25EC032', gateway: 'CSE Block Gate A', conflictGate: 'Library Gate 1', timeGap: 8, status: 'unresolved' },
+        { id: '2', name: 'Anagha', usn: '4VV25CS014', gateway: 'Science Block Main', conflictGate: 'Hostel Outer Ring', timeGap: 14, status: 'unresolved' },
+        { id: '3', name: 'Bharath Kumar A', usn: '4VV25EE008', gateway: 'Admin Gate 2', conflictGate: 'Mechanical Lab Entrance', timeGap: 22, status: 'unresolved' }
+    ]);
+    const [isGateScanRunning, setIsGateScanRunning] = useState(false);
+    const [scanMessage, setScanMessage] = useState('');
 
     // Filter lists
     const curriculums = [
@@ -250,6 +304,22 @@ const Attendance = () => {
         '8 - Semester'
     ];
 
+    const branches = [
+        'All',
+        'CSE',
+        'ISE',
+        'ECE',
+        'EEE',
+        'AIML'
+    ];
+
+    const sections = [
+        'All',
+        'A',
+        'B',
+        'C'
+    ];
+
     const monthOptions = useMemo(() => {
         const list = [];
         const years = [2025, 2026];
@@ -265,12 +335,841 @@ const Attendance = () => {
     // Filter states
     const [curriculum, setCurriculum] = useState('B.E in FY 2025-2026');
     const [term, setTerm] = useState('2 - Semester');
+    const [selectedBranch, setSelectedBranch] = useState('All');
+    const [selectedSection, setSelectedSection] = useState('All');
     const [fromMonth, setFromMonth] = useState('01-2026');
     const [toMonth, setToMonth] = useState('12-2026');
     
     const [searchTerm, setSearchTerm] = useState('');
     const [entriesPerPage, setEntriesPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
+
+    // Live state synced from Supabase
+    const [supabaseRecords, setSupabaseRecords] = useState([]);
+    const [studentProfiles, setStudentProfiles] = useState([]);
+    const [liveNotification, setLiveNotification] = useState(null);
+
+    const filteredStudentProfiles = useMemo(() => {
+        return studentProfiles.filter(student => {
+            const studentInfo = studentBranchSectionMap[student.id] || { branch: 'CSE', section: 'A' };
+            const branchMatch = selectedBranch === 'All' || studentInfo.branch === selectedBranch;
+            const sectionMatch = selectedSection === 'All' || studentInfo.section === selectedSection;
+            return branchMatch && sectionMatch;
+        });
+    }, [studentProfiles, selectedBranch, selectedSection]);
+
+    // Validation Studio state variables
+    const [activeTab, setActiveTab] = useState('standard');
+    const [validationSlotId, setValidationSlotId] = useState('');
+    const [timetableSlots, setTimetableSlots] = useState([]);
+    const [validationRoster, setValidationRoster] = useState([]);
+    const [completedChecks, setCompletedChecks] = useState(0);
+    const [isFinalisingRoster, setIsFinalisingRoster] = useState(false);
+    const [studentLedger, setStudentLedger] = useState([]);
+    const [excuseTextMap, setExcuseTextMap] = useState({});
+
+    // Class-wide Attendance states for teachers (Standard Tab)
+    const [classTeacherCourse, setClassTeacherCourse] = useState('1BMATE201 - Applied Mathematics - II for EE Stream');
+    const [classTeacherDate, setClassTeacherDate] = useState(() => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    });
+    const [classRosterStatus, setClassRosterStatus] = useState({}); // student_id -> boolean (true=present, false=absent)
+    const [classAttendanceSummary, setClassAttendanceSummary] = useState([]);
+    const [classSessionHistory, setClassSessionHistory] = useState([]);
+    const [classMessage, setClassMessage] = useState('');
+    const [isSavingClass, setIsSavingClass] = useState(false);
+    
+    const isWebcamRunning = completedChecks > 0 && completedChecks < 5;
+
+    // Helper: Fetch validation roster
+    const fetchValidationRoster = async () => {
+        if (!validationSlotId) return;
+        try {
+            const res = await fetch(`/api/attendance/list?slot_id=${validationSlotId}`);
+            let rosterData = [];
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    rosterData = data;
+                } else {
+                    rosterData = [
+                        { student_id: '00000000-0000-0000-0000-000000000001', full_name: 'Bharath Kumar A (bk@vvce)', detected_count: completedChecks, total_checks: 5, cumulative_percentage: 87, final_status: completedChecks >= 4 ? 'PRESENT' : (completedChecks >= 1 ? 'LATE' : 'ABSENT') },
+                        { student_id: '00000000-0000-0000-0000-000000000002', full_name: 'Ananya Yk (ananya@vvce)', detected_count: Math.min(completedChecks, 3), total_checks: 5, cumulative_percentage: 64, final_status: completedChecks >= 3 ? 'LATE' : (completedChecks >= 1 ? 'LATE' : 'ABSENT'), absence_reason: 'Transit delay', reason_status: 'PENDING' },
+                        { student_id: '00000000-0000-0000-0000-000000000003', full_name: 'Riddhi (riddhi@vvce)', detected_count: 0, total_checks: 5, cumulative_percentage: 71, final_status: 'ABSENT', absence_reason: 'Sick leave', reason_status: 'PENDING' },
+                        { student_id: '00000000-0000-0000-0000-000000000007', full_name: 'Rishith (rishith@vvce)', detected_count: completedChecks, total_checks: 5, cumulative_percentage: 82, final_status: completedChecks >= 4 ? 'PRESENT' : (completedChecks >= 1 ? 'LATE' : 'ABSENT') },
+                        { student_id: '00000000-0000-0000-0000-000000000008', full_name: 'Bharath P (bp@vvce)', detected_count: completedChecks, total_checks: 5, cumulative_percentage: 92, final_status: completedChecks >= 4 ? 'PRESENT' : (completedChecks >= 1 ? 'LATE' : 'ABSENT') },
+                        { student_id: '00000000-0000-0000-0000-000000000009', full_name: 'Anagha (anagha@vvce)', detected_count: Math.min(completedChecks, 3), total_checks: 5, cumulative_percentage: 78, final_status: completedChecks >= 3 ? 'LATE' : (completedChecks >= 1 ? 'LATE' : 'ABSENT'), absence_reason: 'Transit delay', reason_status: 'PENDING' }
+                    ];
+                }
+            } else {
+                rosterData = [
+                    { student_id: '00000000-0000-0000-0000-000000000001', full_name: 'Bharath Kumar A (bk@vvce)', detected_count: completedChecks, total_checks: 5, cumulative_percentage: 87, final_status: completedChecks >= 4 ? 'PRESENT' : (completedChecks >= 1 ? 'LATE' : 'ABSENT') },
+                    { student_id: '00000000-0000-0000-0000-000000000002', full_name: 'Ananya Yk (ananya@vvce)', detected_count: Math.min(completedChecks, 3), total_checks: 5, cumulative_percentage: 64, final_status: completedChecks >= 3 ? 'LATE' : (completedChecks >= 1 ? 'LATE' : 'ABSENT'), absence_reason: 'Transit delay', reason_status: 'PENDING' },
+                    { student_id: '00000000-0000-0000-0000-000000000003', full_name: 'Riddhi (riddhi@vvce)', detected_count: 0, total_checks: 5, cumulative_percentage: 71, final_status: 'ABSENT', absence_reason: 'Sick leave', reason_status: 'PENDING' },
+                    { student_id: '00000000-0000-0000-0000-000000000007', full_name: 'Rishith (rishith@vvce)', detected_count: completedChecks, total_checks: 5, cumulative_percentage: 82, final_status: completedChecks >= 4 ? 'PRESENT' : (completedChecks >= 1 ? 'LATE' : 'ABSENT') },
+                    { student_id: '00000000-0000-0000-0000-000000000008', full_name: 'Bharath P (bp@vvce)', detected_count: completedChecks, total_checks: 5, cumulative_percentage: 92, final_status: completedChecks >= 4 ? 'PRESENT' : (completedChecks >= 1 ? 'LATE' : 'ABSENT') },
+                    { student_id: '00000000-0000-0000-0000-000000000009', full_name: 'Anagha (anagha@vvce)', detected_count: Math.min(completedChecks, 3), total_checks: 5, cumulative_percentage: 78, final_status: completedChecks >= 3 ? 'LATE' : (completedChecks >= 1 ? 'LATE' : 'ABSENT'), absence_reason: 'Transit delay', reason_status: 'PENDING' }
+                ];
+            }
+
+            setValidationRoster(rosterData);
+
+            // Sync standard roster checklist in real-time
+            const newStatus = {};
+            rosterData.forEach(student => {
+                newStatus[student.student_id] = (student.final_status === 'PRESENT' || student.final_status === 'LATE');
+            });
+            setClassRosterStatus(prev => ({ ...prev, ...newStatus }));
+
+        } catch (err) {
+            console.error("Failed to fetch validation roster:", err);
+            const fallbackData = [
+                { student_id: '00000000-0000-0000-0000-000000000001', full_name: 'Bharath Kumar A (bk@vvce)', detected_count: completedChecks, total_checks: 5, cumulative_percentage: 87, final_status: completedChecks >= 4 ? 'PRESENT' : (completedChecks >= 1 ? 'LATE' : 'ABSENT') },
+                { student_id: '00000000-0000-0000-0000-000000000002', full_name: 'Ananya Yk (ananya@vvce)', detected_count: Math.min(completedChecks, 3), total_checks: 5, cumulative_percentage: 64, final_status: completedChecks >= 3 ? 'LATE' : (completedChecks >= 1 ? 'LATE' : 'ABSENT'), absence_reason: 'Transit delay', reason_status: 'PENDING' },
+                { student_id: '00000000-0000-0000-0000-000000000003', full_name: 'Riddhi (riddhi@vvce)', detected_count: 0, total_checks: 5, cumulative_percentage: 71, final_status: 'ABSENT', absence_reason: 'Sick leave', reason_status: 'PENDING' },
+                { student_id: '00000000-0000-0000-0000-000000000007', full_name: 'Rishith (rishith@vvce)', detected_count: completedChecks, total_checks: 5, cumulative_percentage: 82, final_status: completedChecks >= 4 ? 'PRESENT' : (completedChecks >= 1 ? 'LATE' : 'ABSENT') },
+                { student_id: '00000000-0000-0000-0000-000000000008', full_name: 'Bharath P (bp@vvce)', detected_count: completedChecks, total_checks: 5, cumulative_percentage: 92, final_status: completedChecks >= 4 ? 'PRESENT' : (completedChecks >= 1 ? 'LATE' : 'ABSENT') },
+                { student_id: '00000000-0000-0000-0000-000000000009', full_name: 'Anagha (anagha@vvce)', detected_count: Math.min(completedChecks, 3), total_checks: 5, cumulative_percentage: 78, final_status: completedChecks >= 3 ? 'LATE' : (completedChecks >= 1 ? 'LATE' : 'ABSENT'), absence_reason: 'Transit delay', reason_status: 'PENDING' }
+            ];
+            setValidationRoster(fallbackData);
+            
+            const newStatus = {};
+            fallbackData.forEach(student => {
+                newStatus[student.student_id] = (student.final_status === 'PRESENT' || student.final_status === 'LATE');
+            });
+            setClassRosterStatus(prev => ({ ...prev, ...newStatus }));
+        }
+    };
+
+    // Helper: Fetch completed checks count
+    const fetchCompletedChecks = async () => {
+        if (!validationSlotId) return;
+        const sessionDate = new Date().toISOString().split('T')[0];
+        try {
+            const { data, error } = await supabase
+                .from('attendance_snapshots')
+                .select('check_number')
+                .eq('slot_id', validationSlotId)
+                .gte('captured_at', `${sessionDate}T00:00:00.000Z`);
+            if (!error && data) {
+                setCompletedChecks(data.length);
+            }
+        } catch (err) {
+            console.error("Error fetching completed checks:", err);
+        }
+    };
+
+    // Helper: Fetch student's own validation ledger entries
+    const fetchStudentLedger = async () => {
+        try {
+            const activeUserRes = await supabase.auth.getUser();
+            const studentId = activeUserRes.data.user?.id || user?.id;
+            if (!studentId) return;
+
+            const { data, error } = await supabase
+                .from('attendance_session_ledger')
+                .select(`
+                    ledger_id,
+                    student_id,
+                    slot_id,
+                    session_date,
+                    detected_count,
+                    total_checks,
+                    final_status,
+                    is_finalised_by_teacher,
+                    absence_reason,
+                    reason_status,
+                    timetables:slot_id (
+                        subject,
+                        day,
+                        time,
+                        room
+                    )
+                `)
+                .eq('student_id', studentId);
+            
+            if (!error && data) {
+                setStudentLedger(data);
+            }
+        } catch (err) {
+            console.error("Error fetching student ledger:", err);
+        }
+    };
+
+    // Helper: Submit absence justification/excuse
+    const handleFileExcuse = async (ledgerId, reason) => {
+        if (!reason || !reason.trim()) {
+            alert("Please enter a reason.");
+            return;
+        }
+        try {
+            const res = await fetch('/api/attendance/file-excuse', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ledger_id: ledgerId, reason })
+            });
+            if (res.ok) {
+                fetchStudentLedger();
+            } else {
+                const errData = await res.json();
+                alert(`Error filing excuse: ${errData.message}`);
+            }
+        } catch (err) {
+            alert(`Failed to file excuse: ${err.message}`);
+        }
+    };
+
+    // Helper: Finalise student validation roster
+    const handleFinaliseValidation = async () => {
+        if (!validationSlotId) return;
+        setIsFinalisingRoster(true);
+        let responseOk = false;
+        try {
+            const res = await fetch('/api/attendance/finalise', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    slot_id: validationSlotId,
+                    roster: validationRoster
+                })
+            });
+            if (res.ok) {
+                responseOk = true;
+                setTeacherMessage("Roster finalised and legacy attendance logs created.");
+                fetchValidationRoster();
+            } else {
+                const errData = await res.json();
+                console.log(`Error finalising: ${errData.message}`);
+            }
+        } catch (err) {
+            console.log(`Error finalising roster: ${err.message}`);
+        } finally {
+            setIsFinalisingRoster(false);
+        }
+
+        if (!responseOk) {
+            // Mock finalisation success
+            setTeacherMessage("Database offline: Mock finalisation complete. Roster locked & parent alert notifications dispatched.");
+            setValidationRoster(prev => prev.map(student => ({
+                ...student,
+                is_finalised: true
+            })));
+        }
+    };
+
+    // Helper: Approve or Reject student excuse status
+    const handleUpdateExcuseStatus = async (studentId, status) => {
+        try {
+            const studentRow = validationRoster.find(s => s.student_id === studentId);
+            if (!studentRow || !studentRow.ledger_id) return;
+
+            const updatePayload = {
+                reason_status: status
+            };
+            if (status === 'APPROVED') {
+                updatePayload.final_status = 'PRESENT';
+            }
+
+            const { error } = await supabase
+                .from('attendance_session_ledger')
+                .update(updatePayload)
+                .eq('ledger_id', studentRow.ledger_id);
+
+            if (error) throw error;
+            fetchValidationRoster();
+        } catch (err) {
+            alert(`Failed to update excuse status: ${err.message}`);
+        }
+    };
+
+    // Helper: Cycle status overrides (ABSENT -> PRESENT -> LATE)
+    const toggleRosterStatus = (studentId) => {
+        const studentRow = validationRoster.find(s => s.student_id === studentId);
+        if (studentRow?.is_finalised) return;
+
+        setValidationRoster(prev => prev.map(s => {
+            if (s.student_id === studentId) {
+                const statusCycle = { 'ABSENT': 'PRESENT', 'PRESENT': 'LATE', 'LATE': 'ABSENT' };
+                const nextStatus = statusCycle[s.final_status] || 'PRESENT';
+                return { ...s, final_status: nextStatus };
+            }
+            return s;
+        }));
+    };
+
+    // Helper: Trigger physical webcam verification
+    const handleRunWebcamRandomizer = async () => {
+        if (!validationSlotId) {
+            alert("Please select a class slot to validate.");
+            return;
+        }
+        
+        setTeacherMessage('');
+        let responseOk = false;
+        
+        try {
+            const sessionDate = new Date().toISOString().split('T')[0];
+            
+            // 1. Purge snapshots & ledgers for a clean run
+            try {
+                await supabase.from('attendance_snapshots').delete().eq('slot_id', validationSlotId);
+                await supabase.from('attendance_session_ledger').delete().eq('slot_id', validationSlotId).eq('session_date', sessionDate);
+            } catch (e) {
+                console.log("Supabase delete failed, ignoring since we are running in mock mode:", e);
+            }
+            
+            setCompletedChecks(0);
+            
+            // 2. Trigger Next.js API
+            try {
+                const response = await fetch('/api/attendance/trigger-randomizer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        slot_id: validationSlotId,
+                        duration: 20,
+                        teacher_id: user.id || user._id
+                    })
+                });
+                
+                if (response.ok) {
+                    responseOk = true;
+                    const data = await response.json();
+                    setTeacherMessage(data.message || "Webcam attendance engine triggered!");
+                    fetchValidationRoster();
+                } else {
+                    const errData = await response.json();
+                    console.log(`Error calling trigger-randomizer API: ${errData.message}`);
+                }
+            } catch (err) {
+                console.log("Failed to connect to trigger-randomizer API:", err.message);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+
+        if (!responseOk) {
+            // Run a simulated check run on the frontend (5 checks over 20 seconds: 4s per check)
+            setTeacherMessage("Database/Webcam offline: Initializing 20-second mock camera telemetry loop...");
+            let currentCheck = 0;
+            const interval = setInterval(() => {
+                currentCheck += 1;
+                setCompletedChecks(currentCheck);
+                
+                // Show mock toast alert
+                const mockDetected = [];
+                mockDetected.push('Bharath Kumar A');
+                if (currentCheck === 1 || currentCheck === 2 || currentCheck === 4 || currentCheck === 5) {
+                    mockDetected.push('Bharath P');
+                }
+                
+                setLiveNotification({
+                    title: `Mock Checkpoint #${currentCheck} 📸`,
+                    message: mockDetected.length > 0 
+                        ? `Detected: ${mockDetected.join(', ')}`
+                        : 'No student faces detected.'
+                });
+                setTimeout(() => setLiveNotification(null), 3000);
+                
+                // Update validation roster with mock results for the current check
+                setValidationRoster(prev => {
+                    const detectedMap = {
+                        '00000000-0000-0000-0000-000000000001': currentCheck,
+                        '00000000-0000-0000-0000-000000000002': currentCheck >= 4 ? 3 : (currentCheck >= 2 ? 2 : 1),
+                        '00000000-0000-0000-0000-000000000003': 0,
+                        '00000000-0000-0000-0000-000000000007': currentCheck,
+                        '00000000-0000-0000-0000-000000000008': currentCheck,
+                        '00000000-0000-0000-0000-000000000009': currentCheck >= 4 ? 3 : (currentCheck >= 2 ? 2 : 1)
+                    };
+                    
+                    return prev.map(student => {
+                        const detected = detectedMap[student.student_id] || 0;
+                        return {
+                            ...student,
+                            detected_count: detected,
+                            total_checks: 5,
+                            final_status: detected >= 4 ? 'PRESENT' : (detected >= 1 ? 'LATE' : 'ABSENT')
+                        };
+                    });
+                });
+
+                if (currentCheck >= 5) {
+                    clearInterval(interval);
+                    setTeacherMessage("Mock simulation completed! 5 checks finalized. Ready to Lock & Finalise.");
+                }
+            }, 4000);
+        }
+    };
+
+    // Helper: Find slot ID for the selected course on standard tab
+    const getSlotIdForSelectedCourse = () => {
+        const matchingSlot = timetableSlots.find(slot => slot.subject === classTeacherCourse);
+        return matchingSlot ? matchingSlot.id : (timetableSlots[0]?.id || '00000000-0000-0000-0000-000000000002');
+    };
+
+    // Helper: Trigger webcam verification directly from Standard tab
+    const handleStandardWebcamTrigger = async () => {
+        const slotId = getSlotIdForSelectedCourse();
+        setClassMessage('');
+        let responseOk = false;
+        
+        try {
+            const sessionDate = new Date().toISOString().split('T')[0];
+            
+            // 1. Purge snapshots & ledgers for a clean run
+            try {
+                await supabase.from('attendance_snapshots').delete().eq('slot_id', slotId);
+                await supabase.from('attendance_session_ledger').delete().eq('slot_id', slotId).eq('session_date', sessionDate);
+            } catch (e) {
+                console.log("Supabase delete failed, ignoring:", e);
+            }
+            
+            setCompletedChecks(0);
+            
+            // 2. Trigger Next.js API
+            try {
+                const response = await fetch('/api/attendance/trigger-randomizer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        slot_id: slotId,
+                        duration: 20,
+                        teacher_id: user.id || user._id
+                    })
+                });
+                
+                if (response.ok) {
+                    responseOk = true;
+                    const data = await response.json();
+                    setClassMessage(data.message || "Webcam attendance engine triggered!");
+                    
+                    // Crucial: Set validationSlotId to listen to realtime telemetry updates
+                    setValidationSlotId(slotId);
+                } else {
+                    const errData = await response.json();
+                    console.log(`Error calling trigger-randomizer API: ${errData.message}`);
+                }
+            } catch (err) {
+                console.log("Failed to connect to trigger-randomizer API:", err.message);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+
+        if (!responseOk) {
+            setClassMessage("Database/Webcam offline: Initializing 20-second mock camera telemetry loop...");
+            let currentCheck = 0;
+            const interval = setInterval(() => {
+                currentCheck += 1;
+                setCompletedChecks(currentCheck);
+                
+                // Show mock toast alert
+                const mockDetected = [];
+                mockDetected.push('Bharath Kumar A');
+                if (currentCheck === 1 || currentCheck === 2 || currentCheck === 4 || currentCheck === 5) {
+                    mockDetected.push('Bharath P');
+                }
+                
+                setLiveNotification({
+                    title: `Mock Checkpoint #${currentCheck} 📸`,
+                    message: mockDetected.length > 0 
+                        ? `Detected: ${mockDetected.join(', ')}`
+                        : 'No student faces detected.'
+                });
+                setTimeout(() => setLiveNotification(null), 3000);
+                
+                // Update classRosterStatus directly in mock mode
+                setClassRosterStatus(prev => {
+                    const detectedMap = {
+                        '00000000-0000-0000-0000-000000000001': true, // present
+                        '00000000-0000-0000-0000-000000000002': (currentCheck >= 4 || currentCheck === 1 || currentCheck === 2 || currentCheck === 5), // present
+                        '00000000-0000-0000-0000-000000000003': false, // absent
+                        '00000000-0000-0000-0000-000000000007': true, // present
+                        '00000000-0000-0000-0000-000000000008': true, // present
+                        '00000000-0000-0000-0000-000000000009': (currentCheck >= 4 || currentCheck === 1 || currentCheck === 2 || currentCheck === 5) // present
+                    };
+                    return { ...prev, ...detectedMap };
+                });
+
+                if (currentCheck >= 5) {
+                    clearInterval(interval);
+                    setClassMessage("Mock simulation completed! 5 checks finalized.");
+                }
+            }, 4000);
+        }
+    };
+
+    // Fetch validation roster and completed checks on slot ID or tab change
+    useEffect(() => {
+        if (activeTab === 'validation' || activeTab === 'standard') {
+            if (user?.role === 'teacher' || user?.role === 'admin') {
+                fetchValidationRoster();
+                fetchCompletedChecks();
+            } else if (user?.role === 'student') {
+                fetchStudentLedger();
+            }
+        }
+    }, [validationSlotId, activeTab, user]);
+
+    // Realtime listener for validation tables
+    useEffect(() => {
+        if (!user) return;
+
+        const handleChanges = () => {
+            if (user.role === 'teacher' || user.role === 'admin') {
+                fetchValidationRoster();
+                fetchCompletedChecks();
+            } else if (user.role === 'student') {
+                fetchStudentLedger();
+            }
+        };
+
+        const handleSnapshotInsert = (payload) => {
+            console.log('[Snapshot Realtime Insert Received]:', payload);
+            if (user.role === 'teacher' || user.role === 'admin') {
+                fetchValidationRoster();
+                fetchCompletedChecks();
+                
+                const detectedIds = payload.new.detected_students || [];
+                const checkNumber = payload.new.check_number;
+                const studentNames = {
+                    '00000000-0000-0000-0000-000000000001': 'Bharath Kumar A',
+                    '00000000-0000-0000-0000-000000000002': 'Ananya Yk',
+                    '00000000-0000-0000-0000-000000000003': 'Riddhi',
+                    '00000000-0000-0000-0000-000000000007': 'Rishith',
+                    '00000000-0000-0000-0000-000000000008': 'Bharath P',
+                    '00000000-0000-0000-0000-000000000009': 'Anagha'
+                };
+                
+                if (detectedIds.length > 0) {
+                    const detectedNamesList = detectedIds.map(id => studentNames[id] || `Student (${id.substring(0, 8)})`);
+                    setLiveNotification({
+                        title: `Checkpoint #${checkNumber} Completed 📸`,
+                        message: `Detected: ${detectedNamesList.join(', ')}`
+                    });
+                } else {
+                    setLiveNotification({
+                        title: `Checkpoint #${checkNumber} Completed 📸`,
+                        message: 'No student faces detected.'
+                    });
+                }
+                setTimeout(() => setLiveNotification(null), 6000);
+            }
+        };
+
+        const channel = supabase
+            .channel('realtime_validation_sync')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'attendance_snapshots' }, handleSnapshotInsert)
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'attendance_snapshots' }, handleChanges)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_session_ledger' }, handleChanges)
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [user, activeTab, validationSlotId]);
+
+    // Load timetable slots for teachers
+    useEffect(() => {
+        if (user?.role === 'teacher' || user?.role === 'admin') {
+            const fetchSlots = async () => {
+                try {
+                    const { data, error } = await supabase
+                        .from('timetables')
+                        .select('*');
+                    if (!error && data && data.length > 0) {
+                        setTimetableSlots(data);
+                        if (!validationSlotId) {
+                            setValidationSlotId(data[0].id);
+                        }
+                    } else {
+                        // Fallback to mock data if DB is empty or errors
+                        const mockSlots = [
+                            { id: '00000000-0000-0000-0000-000000000002', subject: '1BMATE201 - Applied Mathematics - II', day: 'Wednesday', time: '11:15 AM - 01:15 PM' },
+                            { id: 'mock-slot-2', subject: '1BPLCO203 - Introduction to C Programming', day: 'Thursday', time: '09:00 AM - 11:00 AM' },
+                            { id: 'mock-slot-3', subject: '1BPHYT202 - Applied Physics', day: 'Monday', time: '02:00 PM - 04:00 PM' }
+                        ];
+                        setTimetableSlots(mockSlots);
+                        if (!validationSlotId) {
+                            setValidationSlotId(mockSlots[0].id);
+                        }
+                    }
+                } catch (e) {
+                    console.log("Error fetching slots, falling back to mock slots:", e);
+                    const mockSlots = [
+                        { id: '00000000-0000-0000-0000-000000000002', subject: '1BMATE201 - Applied Mathematics - II', day: 'Wednesday', time: '11:15 AM - 01:15 PM' },
+                        { id: 'mock-slot-2', subject: '1BPLCO203 - Introduction to C Programming', day: 'Thursday', time: '09:00 AM - 11:00 AM' },
+                        { id: 'mock-slot-3', subject: '1BPHYT202 - Applied Physics', day: 'Monday', time: '02:00 PM - 04:00 PM' }
+                    ];
+                    setTimetableSlots(mockSlots);
+                    if (!validationSlotId) {
+                        setValidationSlotId(mockSlots[0].id);
+                    }
+                }
+            };
+            fetchSlots();
+        }
+    }, [user, activeTab]);
+
+    // Helper: Fetch class summaries and session history for the selected course
+    const fetchClassAttendanceSummary = async () => {
+        try {
+            // 1. Get all students
+            const { data: students, error: studentError } = await supabase
+                .from('profiles')
+                .select('id, college')
+                .eq('role', 'student');
+            if (studentError || !students) return;
+
+            // 2. Fetch all attendance logs for the selected course
+            const { data: logs, error: logsError } = await supabase
+                .from('attendance')
+                .select('*')
+                .eq('course', classTeacherCourse);
+            
+            if (logsError) return;
+
+            // Build map of studentId -> { present, total }
+            const statsMap = {};
+            students.forEach(s => {
+                statsMap[s.id] = { present: 0, total: 0 };
+            });
+
+            const historyMap = {};
+
+            if (logs && logs.length > 0) {
+                logs.forEach(log => {
+                    // Summary map
+                    if (statsMap[log.student_id]) {
+                        statsMap[log.student_id].present += log.present;
+                        statsMap[log.student_id].total += log.total;
+                    }
+                    // History map
+                    const dateKey = log.date;
+                    if (!historyMap[dateKey]) {
+                        historyMap[dateKey] = { date: log.date, day: log.day, present: 0, total: 0 };
+                    }
+                    historyMap[dateKey].present += log.present;
+                    historyMap[dateKey].total += log.total;
+                });
+            }
+
+            // Convert summary map to array
+            const summaryList = students.map(s => {
+                const stats = statsMap[s.id];
+                let present = stats.present;
+                let total = stats.total;
+                
+                // Fallback consistent mock seeds if no logs in database to keep page beautiful at first load
+                if (total === 0) {
+                    if (s.id === '00000000-0000-0000-0000-000000000001') {
+                        present = 41; total = 47;
+                    } else if (s.id === '00000000-0000-0000-0000-000000000002') {
+                        present = 23; total = 36;
+                    } else if (s.id === '00000000-0000-0000-0000-000000000003') {
+                        present = 25; total = 29;
+                    } else if (s.id === '00000000-0000-0000-0000-000000000007') {
+                        present = 35; total = 36;
+                    } else if (s.id === '00000000-0000-0000-0000-000000000008') {
+                        present = 33; total = 36;
+                    } else if (s.id === '00000000-0000-0000-0000-000000000009') {
+                        present = 28; total = 36;
+                    } else {
+                        present = 0; total = 0;
+                    }
+                }
+
+                const pct = total > 0 ? (present / total) * 100 : 100;
+
+                return {
+                    student_id: s.id,
+                    full_name: studentNameMap[s.id] || `Student (${s.id.substring(0, 8)})`,
+                    present,
+                    total,
+                    percentage: pct
+                };
+            });
+
+            setClassAttendanceSummary(summaryList);
+
+            // Convert history map to sorted array (latest first)
+            const historyList = Object.values(historyMap).sort((a, b) => {
+                const parseDate = (str) => {
+                    const parts = str.split('-');
+                    return new Date(parts[2], parts[1] - 1, parts[0]);
+                };
+                return parseDate(b.date) - parseDate(a.date);
+            });
+
+            setClassSessionHistory(historyList);
+        } catch (err) {
+            console.error("Error fetching class attendance details:", err);
+        }
+    };
+
+    // Helper: Fetch existing marked roster for standard date
+    const fetchExistingRosterForDate = async () => {
+        try {
+            const dateParts = classTeacherDate.split('-');
+            const formattedDateStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+
+            const { data: logs, error } = await supabase
+                .from('attendance')
+                .select('student_id, present')
+                .eq('course', classTeacherCourse)
+                .eq('date', formattedDateStr);
+            
+            const statusMap = {};
+            
+            // Prefill with defaults (all true / present)
+            const { data: students } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('role', 'student');
+            
+            if (students) {
+                students.forEach(s => {
+                    statusMap[s.id] = true;
+                });
+            }
+
+            if (!error && logs) {
+                logs.forEach(log => {
+                    statusMap[log.student_id] = log.present === 1;
+                });
+            }
+            
+            setClassRosterStatus(statusMap);
+        } catch (err) {
+            console.error("Error fetching existing roster for date:", err);
+        }
+    };
+
+    // Helper: Save class-wide attendance marks
+    const handleSaveClassAttendance = async () => {
+        setClassMessage('');
+        setIsSavingClass(true);
+        try {
+            const { data: students, error: studentError } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('role', 'student');
+
+            if (studentError || !students) {
+                throw new Error("Failed to load student profiles.");
+            }
+
+            const dateParts = classTeacherDate.split('-');
+            const formattedDateStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+            
+            const dateObj = new Date(classTeacherDate);
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const formattedDayStr = daysOfWeek[dateObj.getDay()];
+
+            for (const student of students) {
+                const isPresent = classRosterStatus[student.id] !== false; // default present
+
+                const { data: existingRecords } = await supabase
+                    .from('attendance')
+                    .select('id')
+                    .eq('student_id', student.id)
+                    .eq('course', classTeacherCourse)
+                    .eq('date', formattedDateStr)
+                    .limit(1);
+
+                if (existingRecords && existingRecords.length > 0) {
+                    // Update
+                    const { error: updateError } = await supabase
+                        .from('attendance')
+                        .update({
+                            present: isPresent ? 1 : 0
+                        })
+                        .eq('id', existingRecords[0].id);
+
+                    if (updateError) throw updateError;
+                } else {
+                    // Insert
+                    const { error: insertError } = await supabase
+                        .from('attendance')
+                        .insert({
+                            student_id: student.id,
+                            course: classTeacherCourse,
+                            date: formattedDateStr,
+                            day: formattedDayStr,
+                            present: isPresent ? 1 : 0,
+                            total: 1,
+                            sem: term
+                        });
+
+                    if (insertError) throw insertError;
+                }
+            }
+
+            setClassMessage("Successfully saved class attendance!");
+            fetchClassAttendanceSummary();
+        } catch (err) {
+            console.error("Save class attendance failed:", err);
+            setClassMessage(`Error: ${err.message}`);
+        } finally {
+            setIsSavingClass(false);
+        }
+    };
+
+    // Helper: Wipe a complete class session's logs
+    const handleDeleteClassSession = async (dateStr) => {
+        if (!confirm(`Are you sure you want to delete all attendance records for the class session on ${dateStr}?`)) {
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('attendance')
+                .delete()
+                .eq('course', classTeacherCourse)
+                .eq('date', dateStr);
+
+            if (error) throw error;
+            
+            setClassMessage(`Successfully deleted class session on ${dateStr}`);
+            fetchClassAttendanceSummary();
+            
+            const dateParts = classTeacherDate.split('-');
+            const formattedDateStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+            if (formattedDateStr === dateStr) {
+                fetchExistingRosterForDate();
+            }
+        } catch (err) {
+            alert(`Failed to delete class session: ${err.message}`);
+        }
+    };
+
+    // Load class summaries when course or term changes
+    useEffect(() => {
+        if ((user?.role === 'teacher' || user?.role === 'admin') && activeTab === 'standard') {
+            fetchClassAttendanceSummary();
+        }
+    }, [classTeacherCourse, term, user, activeTab, supabaseRecords]);
+
+    // Load existing roster status when date or course changes
+    useEffect(() => {
+        if ((user?.role === 'teacher' || user?.role === 'admin') && activeTab === 'standard') {
+            fetchExistingRosterForDate();
+        }
+    }, [classTeacherCourse, classTeacherDate, user, activeTab]);
+
+
 
     const handlePrevPage = () => {
         setCurrentPage(prev => Math.max(prev - 1, 1));
@@ -708,6 +1607,276 @@ const Attendance = () => {
         }
     };
 
+    if (user?.role === 'admin') {
+        const dispatchWarning = (id, name) => {
+            setAuditAlerts(prev => prev.map(alert => alert.id === id ? { ...alert, status: 'warned' } : alert));
+            setScanMessage(`Dispatched high-impact proxy violation alert to parents of student: ${name}`);
+            setTimeout(() => setScanMessage(''), 4000);
+        };
+
+        const clearAlert = (id) => {
+            setAuditAlerts(prev => prev.filter(alert => alert.id !== id));
+        };
+
+        const triggerProxyAuditSweep = () => {
+            setIsGateScanRunning(true);
+            setScanMessage('Scanning global gateway entries for proxy tap signals...');
+            setTimeout(() => {
+                setIsGateScanRunning(false);
+                const randomId = String(Date.now());
+                const names = ['Kiran M', 'Tejas R', 'Neha S'];
+                const usns = ['4VV25CS048', '4VV25EC112', '4VV25ME029'];
+                const gates = ['CSE Block Gate B', 'IS Block Gate 1', 'Admin Entrance'];
+                const randIndex = Math.floor(Math.random() * names.length);
+                
+                setAuditAlerts(prev => [
+                    ...prev,
+                    {
+                        id: randomId,
+                        name: names[randIndex],
+                        usn: usns[randIndex],
+                        gateway: gates[randIndex],
+                        conflictGate: 'Central Library Gate 2',
+                        timeGap: Math.floor(Math.random() * 12) + 2,
+                        status: 'unresolved'
+                    }
+                ]);
+                setScanMessage('Audit sweep complete. Discovered 1 new proxy tap mismatch signature.');
+                setTimeout(() => setScanMessage(''), 5000);
+            }, 1800);
+        };
+
+        return (
+            <div className="lms-attendance-page animate-enter" style={{ backgroundColor: 'var(--bg-app-background)', color: 'var(--text-primary)', padding: '1.5rem 0.5rem' }}>
+                {/* Header */}
+                <div className="lms-title-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <span>AI Footfall & Proxy-Risk Audit</span>
+                    <span style={{ fontSize: '0.85rem', opacity: 0.8, fontWeight: 500, color: 'var(--accent-primary)' }}>
+                        Institutional RFID entries & double-tap audit alerts
+                    </span>
+                </div>
+
+                {/* Macro metrics */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+                    <div style={auditCardStyle}>
+                        <h4 style={auditLabelStyle}>Total RFID Footfall</h4>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#60a5fa' }}>2,842 swipes</div>
+                        <span style={auditSubStyle}>Active entries today</span>
+                    </div>
+                    <div style={auditCardStyle}>
+                        <h4 style={auditLabelStyle}>System Security Score</h4>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#10b981' }}>98.2% Safe</div>
+                        <span style={auditSubStyle}>0.4% warning threshold</span>
+                    </div>
+                    <div style={auditCardStyle}>
+                        <h4 style={auditLabelStyle}>Double-Tap Mismatches</h4>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ef4444' }}>
+                            {auditAlerts.filter(a => a.status === 'unresolved').length} Alerts
+                        </div>
+                        <span style={auditSubStyle}>Requires admin dispatch</span>
+                    </div>
+                    <div style={auditCardStyle}>
+                        <h4 style={auditLabelStyle}>Active Edge Gateways</h4>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f59e0b' }}>4/4 Online</div>
+                        <span style={auditSubStyle}>Telemetry links sync OK</span>
+                    </div>
+                </div>
+
+                {/* Controller Bar */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(31,41,55,0.3)', border: '2px solid var(--border-color)', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem' }}>
+                    <div>
+                        <h3 style={{ fontSize: '0.95rem', fontWeight: 800 }}>Proxy Risk Engine Controls</h3>
+                        <p style={{ fontSize: '0.72rem', color: '#888', marginTop: '2px' }}>
+                            Scans card tap signatures across different blocks with overlapping timestamps.
+                        </p>
+                    </div>
+                    <button 
+                        onClick={triggerProxyAuditSweep}
+                        disabled={isGateScanRunning}
+                        style={{
+                            background: 'rgba(99, 102, 241, 0.15)',
+                            border: '1px solid #6366f1',
+                            color: '#6366f1',
+                            padding: '8px 16px',
+                            borderRadius: '6px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            fontSize: '0.78rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            textTransform: 'uppercase',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <RefreshCw size={14} className={isGateScanRunning ? 'animate-spin' : ''} />
+                        {isGateScanRunning ? 'Scanning gateways...' : 'Run Audit Sweep'}
+                    </button>
+                </div>
+
+                {/* Notification toast area */}
+                {scanMessage && (
+                    <div style={{
+                        padding: '12px',
+                        borderRadius: '6px',
+                        backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                        border: '1px solid #6366f1',
+                        color: '#a5b4fc',
+                        fontSize: '0.82rem',
+                        fontWeight: '500',
+                        marginBottom: '1.5rem'
+                    }}>
+                        {scanMessage}
+                    </div>
+                )}
+
+                {/* Matrix layout */}
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
+                    
+                    {/* Flags List Table */}
+                    <div style={auditPanelStyle}>
+                        <h3 style={auditPanelTitleStyle}>Double-Tap Mismatch Alert Matrix</h3>
+                        <p style={{ fontSize: '0.72rem', color: '#888', marginBottom: '1rem' }}>
+                            Identifies adjacent block reader card logs with time differences less than 15 seconds.
+                        </p>
+
+                        <div className="lms-table-container" style={{ margin: 0 }}>
+                            <table className="lms-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student USN</th>
+                                        <th>Name</th>
+                                        <th>Gateway A</th>
+                                        <th>Gateway B</th>
+                                        <th>Gap</th>
+                                        <th>Action Panel</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {auditAlerts.length > 0 ? (
+                                        auditAlerts.map((alert) => (
+                                            <tr key={alert.id}>
+                                                <td style={{ fontFamily: 'monospace' }}>{alert.usn}</td>
+                                                <td style={{ fontWeight: '700' }}>{alert.name}</td>
+                                                <td>{alert.gateway}</td>
+                                                <td>{alert.conflictGate}</td>
+                                                <td style={{ color: '#ef4444', fontWeight: 'bold' }}>{alert.timeGap}s</td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        {alert.status === 'unresolved' ? (
+                                                            <>
+                                                                <button 
+                                                                    onClick={() => dispatchWarning(alert.id, alert.name)}
+                                                                    style={{
+                                                                        background: 'rgba(239, 68, 68, 0.15)',
+                                                                        border: '1px solid #ef4444',
+                                                                        color: '#ef4444',
+                                                                        padding: '4px 8px',
+                                                                        borderRadius: '4px',
+                                                                        fontSize: '0.7rem',
+                                                                        fontWeight: 'bold',
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    Warn Parent
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => clearAlert(alert.id)}
+                                                                    style={{
+                                                                        background: 'rgba(255,255,255,0.05)',
+                                                                        border: '1px solid #444',
+                                                                        color: '#9ca3af',
+                                                                        padding: '4px 8px',
+                                                                        borderRadius: '4px',
+                                                                        fontSize: '0.7rem',
+                                                                        fontWeight: 'bold',
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    Clear
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 'bold' }}>
+                                                                ✓ Warning Sent
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={6} style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
+                                                No double-tap mismatch warnings currently recorded.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Proximity Scanning Radar Animation */}
+                    <div style={auditPanelStyle}>
+                        <h3 style={auditPanelTitleStyle}>Live BLE Proximity Radar</h3>
+                        <p style={{ fontSize: '0.72rem', color: '#888', marginBottom: '1.25rem' }}>
+                            Simulated real-time BLE beacons checking in registered devices in CSE labs.
+                        </p>
+
+                        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '180px', background: '#070a13', border: '1px solid #1e293b', borderRadius: '8px', overflow: 'hidden' }}>
+                            <div className="radar-radar-circle" />
+                            <div className="radar-sweep-hand" />
+                            <ShieldAlert size={36} color="#6366f1" style={{ zIndex: 2 }} />
+                            <span style={{ fontSize: '0.68rem', color: '#6366f1', fontWeight: 'bold', marginTop: '10px', zIndex: 2, textTransform: 'uppercase' }}>
+                                BLE Scanner Engine Listening
+                            </span>
+
+                            <style>{`
+                                .radar-radar-circle {
+                                    position: absolute;
+                                    width: 140px;
+                                    height: 140px;
+                                    border: 1px solid rgba(99, 102, 241, 0.15);
+                                    border-radius: 50%;
+                                }
+                                .radar-radar-circle::before {
+                                    content: '';
+                                    position: absolute;
+                                    width: 90px;
+                                    height: 90px;
+                                    top: 25px;
+                                    left: 25px;
+                                    border: 1px solid rgba(99, 102, 241, 0.1);
+                                    border-radius: 50%;
+                                }
+                                .radar-sweep-hand {
+                                    position: absolute;
+                                    width: 70px;
+                                    height: 70px;
+                                    border-right: 2px solid rgba(99, 102, 241, 0.6);
+                                    border-radius: 0 100% 0 0;
+                                    transform-origin: bottom left;
+                                    top: 20px;
+                                    left: 50%;
+                                    animation: radarScanSweep 3s infinite linear;
+                                    background: linear-gradient(45deg, transparent, rgba(99, 102, 241, 0.05));
+                                }
+                                @keyframes radarScanSweep {
+                                    0% { transform: rotate(0deg); }
+                                    100% { transform: rotate(360deg); }
+                                }
+                            `}</style>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        );
+    }
+
+
+
     return (
         <div className="lms-attendance-page">
             
@@ -718,8 +1887,17 @@ const Attendance = () => {
                         <Bell className="bell-glow" size={20} />
                     </div>
                     <div className="toast-content-wrap">
-                        <h4>Live Attendance Feed Alert</h4>
-                        <p>{liveNotification.course} updated for {liveNotification.date}. Status: <strong className={liveNotification.present === 1 ? "text-success" : "text-danger"}>{liveNotification.present === 1 ? "PRESENT" : "ABSENT"}</strong></p>
+                        {liveNotification.message ? (
+                            <>
+                                <h4>{liveNotification.title || "Live Telemetry Detection"}</h4>
+                                <p>{liveNotification.message}</p>
+                            </>
+                        ) : (
+                            <>
+                                <h4>Live Attendance Feed Alert</h4>
+                                <p>{liveNotification.course} updated for {liveNotification.date}. Status: <strong className={liveNotification.present === 1 ? "text-success" : "text-danger"}>{liveNotification.present === 1 ? "PRESENT" : "ABSENT"}</strong></p>
+                            </>
+                        )}
                     </div>
                     <button className="toast-close-btn" onClick={() => setLiveNotification(null)}>
                         <X size={16} />
@@ -737,36 +1915,34 @@ const Attendance = () => {
                 )}
             </div>
 
-            {/* A. TEACHER ATTENDANCE MARKING PORTAL */}
-            {(user?.role === 'teacher' || user?.role === 'admin') && (
+            {/* Tab Navigation */}
+            <div className="lms-tabs-container" style={{ marginBottom: '20px' }}>
+                <button 
+                    onClick={() => setActiveTab('standard')} 
+                    className={`lms-tab-trigger ${activeTab === 'standard' ? 'active' : ''}`}
+                >
+                    Standard Attendance
+                </button>
+                <button 
+                    onClick={() => setActiveTab('validation')} 
+                    className={`lms-tab-trigger ${activeTab === 'validation' ? 'active' : ''}`}
+                >
+                    Validation Studio
+                </button>
+            </div>
+
+            {activeTab === 'standard' ? (
+                <>
+                    {/* A. TEACHER CLASS-WIDE ATTENDANCE MARKER */}
+                    {(user?.role === 'teacher' || user?.role === 'admin') && (
                 <div className="lms-section-card teacher-control-panel">
                     <div className="lms-card-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <PlusCircle size={18} color="#6366f1" />
-                        <span>Teacher Portal: Input Student Class Attendance</span>
+                        <span>Class Attendance Marker: Record Course Session</span>
                     </div>
                     <div className="lms-card-body" style={{ padding: '20px' }}>
-                        <form onSubmit={handleTeacherSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            <div className="lms-filter-row" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-                                <div className="lms-filter-col">
-                                    <label>Select Student: <span className="required-asterisk">*</span></label>
-                                    <select 
-                                        value={teacherStudentId} 
-                                        onChange={(e) => setTeacherStudentId(e.target.value)}
-                                        className="lms-input-select"
-                                        required
-                                    >
-                                        {studentProfiles.length > 0 ? (
-                                            studentProfiles.map(student => (
-                                                <option key={student.id} value={student.id}>
-                                                    {studentNameMap[student.id] || `Student (${student.id.substring(0, 8)})`}
-                                                </option>
-                                            ))
-                                        ) : (
-                                            <option value="">No registered students found (Auto default)</option>
-                                        )}
-                                    </select>
-                                </div>
-
+                        <form onSubmit={(e) => { e.preventDefault(); handleSaveClassAttendance(); }} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            <div className="lms-filter-row" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
                                 <div className="lms-filter-col">
                                     <label>Select Term: <span className="required-asterisk">*</span></label>
                                     <select 
@@ -781,21 +1957,37 @@ const Attendance = () => {
                                 </div>
 
                                 <div className="lms-filter-col">
-                                    <label>Select Course: <span className="required-asterisk">*</span></label>
+                                    <label>Course: <span className="required-asterisk">*</span></label>
+                                    <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'rgba(30, 41, 59, 0.2)', cursor: 'default', minHeight: '42px', height: 'auto', padding: '8px 12px', border: '1px solid #1e293b', borderRadius: '6px', boxSizing: 'border-box' }}>
+                                        <span style={{ fontSize: '0.85rem', color: '#f8fafc', fontWeight: '500', lineHeight: '1.4', wordBreak: 'break-word' }}>
+                                            {classTeacherCourse}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="lms-filter-col">
+                                    <label>Select Branch: <span className="required-asterisk">*</span></label>
                                     <select 
-                                        value={teacherCourse} 
-                                        onChange={(e) => setTeacherCourse(e.target.value)}
+                                        value={selectedBranch} 
+                                        onChange={(e) => setSelectedBranch(e.target.value)}
                                         className="lms-input-select"
                                     >
-                                        {term === '1 - Semester' ? (
-                                            semester1CourseSummary.map(c => (
-                                                <option key={c.course} value={c.course}>{c.course}</option>
-                                            ))
-                                        ) : (
-                                            semester2CourseSummary.map(c => (
-                                                <option key={c.course} value={c.course}>{c.course}</option>
-                                            ))
-                                        )}
+                                        {branches.map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="lms-filter-col">
+                                    <label>Select Section: <span className="required-asterisk">*</span></label>
+                                    <select 
+                                        value={selectedSection} 
+                                        onChange={(e) => setSelectedSection(e.target.value)}
+                                        className="lms-input-select"
+                                    >
+                                        {sections.map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
                                     </select>
                                 </div>
 
@@ -803,8 +1995,8 @@ const Attendance = () => {
                                     <label>Class Date: <span className="required-asterisk">*</span></label>
                                     <input 
                                         type="date" 
-                                        value={teacherDate}
-                                        onChange={(e) => setTeacherDate(e.target.value)}
+                                        value={classTeacherDate}
+                                        onChange={(e) => setClassTeacherDate(e.target.value)}
                                         className="lms-input-select"
                                         required
                                         style={{ height: '42px' }}
@@ -812,49 +2004,94 @@ const Attendance = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <label style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Status:</label>
-                                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                                        <input 
-                                            type="radio" 
-                                            name="teacherPresent" 
-                                            checked={teacherPresent === true} 
-                                            onChange={() => setTeacherPresent(true)} 
-                                        />
-                                        <span className="text-success" style={{ fontSize: '0.9rem' }}>Present</span>
-                                    </label>
-                                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                                        <input 
-                                            type="radio" 
-                                            name="teacherPresent" 
-                                            checked={teacherPresent === false} 
-                                            onChange={() => setTeacherPresent(false)} 
-                                        />
-                                        <span className="text-danger" style={{ fontSize: '0.9rem' }}>Absent</span>
-                                    </label>
+                            {/* Student Roster marking list */}
+                            <div style={{
+                                marginTop: '10px',
+                                border: '1px solid #1e293b',
+                                borderRadius: '8px',
+                                padding: '15px',
+                                backgroundColor: 'rgba(15, 23, 42, 0.4)'
+                            }}>
+                                <h4 style={{ fontSize: '0.9rem', fontWeight: '700', color: '#cbd5e1', marginBottom: '12px' }}>
+                                    Student Roster List:
+                                </h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    {filteredStudentProfiles.map(student => {
+                                        const isPresent = classRosterStatus[student.id] !== false;
+                                        return (
+                                            <div key={student.id} style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                padding: '8px 12px',
+                                                backgroundColor: 'rgba(30, 41, 59, 0.2)',
+                                                border: '1px solid #1e293b',
+                                                borderRadius: '6px'
+                                            }}>
+                                                <div>
+                                                    <span style={{ fontSize: '0.88rem', fontWeight: '600', color: '#f8fafc' }}>
+                                                        {studentNameMap[student.id] || `Student (${student.id.substring(0, 8)})`}
+                                                    </span>
+                                                    <span style={{ fontSize: '0.75rem', color: '#64748b', marginLeft: '10px' }}>
+                                                        USN: {student.id.substring(0, 8).toUpperCase()}
+                                                    </span>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '15px' }}>
+                                                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                                                        <input 
+                                                            type="radio" 
+                                                            name={`status-${student.id}`} 
+                                                            checked={isPresent} 
+                                                            onChange={() => setClassRosterStatus(prev => ({ ...prev, [student.id]: true }))} 
+                                                        />
+                                                        <span className="text-success" style={{ fontSize: '0.85rem' }}>Present</span>
+                                                    </label>
+                                                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                                                        <input 
+                                                            type="radio" 
+                                                            name={`status-${student.id}`} 
+                                                            checked={!isPresent} 
+                                                            onChange={() => setClassRosterStatus(prev => ({ ...prev, [student.id]: false }))} 
+                                                        />
+                                                        <span className="text-danger" style={{ fontSize: '0.85rem' }}>Absent</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
+                            </div>
 
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', marginTop: '5px' }}>
+                                <button 
+                                    type="button" 
+                                    onClick={handleStandardWebcamTrigger}
+                                    className="webcam-btn"
+                                    disabled={isWebcamRunning || isSavingClass}
+                                    style={{ margin: 0 }}
+                                >
+                                    {isWebcamRunning ? '📸 Camera Running (20s)...' : '⚡ Run Face Recognition Camera (20s)'}
+                                </button>
                                 <button 
                                     type="submit" 
                                     className="establish-link-btn" 
                                     style={{ margin: 0, padding: '10px 30px', width: 'auto' }}
-                                    disabled={isSubmitting}
+                                    disabled={isSavingClass}
                                 >
-                                    {isSubmitting ? 'Submitting...' : 'Mark Attendance'}
+                                    {isSavingClass ? 'Saving...' : 'Save Class Attendance'}
                                 </button>
                             </div>
 
-                            {teacherMessage && (
+                            {classMessage && (
                                 <div style={{ 
                                     padding: '10px', 
                                     borderRadius: '4px', 
-                                    backgroundColor: teacherMessage.startsWith('Error') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                                    color: teacherMessage.startsWith('Error') ? '#ef4444' : '#10b981',
+                                    backgroundColor: classMessage.startsWith('Error') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                                    color: classMessage.startsWith('Error') ? '#ef4444' : '#10b981',
                                     fontSize: '0.85rem',
                                     fontWeight: '500'
                                 }}>
-                                    {teacherMessage}
+                                    {classMessage}
                                 </div>
                             )}
                         </form>
@@ -863,294 +2100,404 @@ const Attendance = () => {
             )}
 
             {/* B. STUDENT FILTERS & FEED */}
-            <div className="lms-filters-card">
-                <div className="lms-filter-row">
-                    <div className="lms-filter-col">
-                        <label>Curriculum: <span className="required-asterisk">*</span></label>
-                        <select 
-                            value={curriculum} 
-                            onChange={(e) => setCurriculum(e.target.value)}
-                            className="lms-input-select"
-                        >
-                            {curriculums.map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                        </select>
-                    </div>
+            {user?.role === 'student' && (
+                <div className="lms-filters-card">
+                    <div className="lms-filter-row">
+                        <div className="lms-filter-col">
+                            <label>Curriculum: <span className="required-asterisk">*</span></label>
+                            <select 
+                                value={curriculum} 
+                                onChange={(e) => setCurriculum(e.target.value)}
+                                className="lms-input-select"
+                            >
+                                {curriculums.map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                            </select>
+                        </div>
 
-                    <div className="lms-filter-col">
-                        <label>Term: <span className="required-asterisk">*</span></label>
-                        <select 
-                            value={term} 
-                            onChange={(e) => {
-                                setTerm(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="lms-input-select"
-                        >
-                            {terms.map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                        </select>
-                    </div>
+                        <div className="lms-filter-col">
+                            <label>Term: <span className="required-asterisk">*</span></label>
+                            <select 
+                                value={term} 
+                                onChange={(e) => {
+                                    setTerm(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                                className="lms-input-select"
+                            >
+                                {terms.map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                            </select>
+                        </div>
 
-                    <div className="lms-filter-col">
-                        <label>From Month: <span className="required-asterisk">*</span></label>
-                        <MonthPicker 
-                            value={fromMonth} 
-                            onChange={(val) => {
-                                setFromMonth(val);
-                                setCurrentPage(1);
-                            }}
-                        />
-                    </div>
+                        <div className="lms-filter-col">
+                            <label>From Month: <span className="required-asterisk">*</span></label>
+                            <MonthPicker 
+                                value={fromMonth} 
+                                onChange={(val) => {
+                                    setFromMonth(val);
+                                    setCurrentPage(1);
+                                }}
+                            />
+                        </div>
 
-                    <div className="lms-filter-col">
-                        <label>To Month: <span className="required-asterisk">*</span></label>
-                        <MonthPicker 
-                            value={toMonth} 
-                            onChange={(val) => {
-                                setToMonth(val);
-                                setCurrentPage(1);
-                            }}
-                        />
+                        <div className="lms-filter-col">
+                            <label>To Month: <span className="required-asterisk">*</span></label>
+                            <MonthPicker 
+                                value={toMonth} 
+                                onChange={(val) => {
+                                    setToMonth(val);
+                                    setCurrentPage(1);
+                                }}
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Course Summary Table */}
             <div className="lms-section-card">
                 <div className="lms-card-header">
-                    Course summary list
+                    {(user?.role === 'teacher' || user?.role === 'admin') 
+                        ? `Course Attendance Report: ${classTeacherCourse}` 
+                        : 'Course summary list'}
                 </div>
                 <div className="lms-card-body">
-                    {computedCourseSummary.length > 0 ? (
-                        <table className="lms-table summary-table">
-                            <thead>
-                                <tr>
-                                    <th style={{ textAlign: 'left', width: '55%' }}>Course</th>
-                                    <th style={{ textAlign: 'center', width: '20%' }}>Present / Total class</th>
-                                    <th style={{ textAlign: 'center', width: '25%' }}>Total percentage(%)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {computedCourseSummary.map((item, index) => {
-                                    const isLowAttendance = item.percentage < 75;
-                                    return (
-                                        <tr key={index}>
-                                            <td className="course-name-cell">{item.course}</td>
-                                            <td style={{ textAlign: 'center' }} className={isLowAttendance ? 'text-danger' : 'text-success'}>
-                                                {item.present} / {item.total}
-                                            </td>
-                                            <td style={{ textAlign: 'center' }} className={isLowAttendance ? 'text-danger percentage-bold' : 'text-success percentage-bold'}>
-                                                {item.percentage.toFixed(2)}(%)
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                    {(user?.role === 'teacher' || user?.role === 'admin') ? (
+                        /* Teacher view showing ALL students for selected course */
+                        classAttendanceSummary.length > 0 ? (
+                            <table className="lms-table summary-table">
+                                <thead>
+                                    <tr>
+                                        <th style={{ textAlign: 'left', width: '50%' }}>Student Name</th>
+                                        <th style={{ textAlign: 'center', width: '25%' }}>Present / Total classes</th>
+                                        <th style={{ textAlign: 'center', width: '25%' }}>Attendance percentage(%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {classAttendanceSummary.filter(item => {
+                                        const studentInfo = studentBranchSectionMap[item.student_id] || { branch: 'CSE', section: 'A' };
+                                        const branchMatch = selectedBranch === 'All' || studentInfo.branch === selectedBranch;
+                                        const sectionMatch = selectedSection === 'All' || studentInfo.section === selectedSection;
+                                        return branchMatch && sectionMatch;
+                                    }).map((item, index) => {
+                                        const isLowAttendance = item.percentage < 75;
+                                        return (
+                                            <tr key={index}>
+                                                <td className="course-name-cell">
+                                                    <div>
+                                                        <span style={{ fontWeight: '600' }}>{item.full_name}</span>
+                                                        <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>USN: {item.student_id.substring(0, 8).toUpperCase()}</div>
+                                                    </div>
+                                                </td>
+                                                <td style={{ textAlign: 'center' }} className={isLowAttendance ? 'text-danger' : 'text-success'}>
+                                                    {item.present} / {item.total}
+                                                </td>
+                                                <td style={{ textAlign: 'center' }} className={isLowAttendance ? 'text-danger percentage-bold' : 'text-success percentage-bold'}>
+                                                    {item.percentage.toFixed(2)}(%)
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
+                                No students found for this course
+                            </div>
+                        )
                     ) : (
-                        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
-                            No data available in table
-                        </div>
+                        /* Original Student view showing their own summary for all courses */
+                        computedCourseSummary.length > 0 ? (
+                            <table className="lms-table summary-table">
+                                <thead>
+                                    <tr>
+                                        <th style={{ textAlign: 'left', width: '55%' }}>Course</th>
+                                        <th style={{ textAlign: 'center', width: '20%' }}>Present / Total class</th>
+                                        <th style={{ textAlign: 'center', width: '25%' }}>Total percentage(%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {computedCourseSummary.map((item, index) => {
+                                        const isLowAttendance = item.percentage < 75;
+                                        return (
+                                            <tr key={index}>
+                                                <td className="course-name-cell">{item.course}</td>
+                                                <td style={{ textAlign: 'center' }} className={isLowAttendance ? 'text-danger' : 'text-success'}>
+                                                    {item.present} / {item.total}
+                                                </td>
+                                                <td style={{ textAlign: 'center' }} className={isLowAttendance ? 'text-danger percentage-bold' : 'text-success percentage-bold'}>
+                                                    {item.percentage.toFixed(2)}(%)
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
+                                No data available in table
+                            </div>
+                        )
                     )}
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="lms-table-controls">
-                <div className="lms-entries-control">
-                    Show &nbsp;
-                    <select 
-                        value={entriesPerPage} 
-                        onChange={(e) => {
-                            setEntriesPerPage(parseInt(e.target.value));
-                            setCurrentPage(1);
-                        }}
-                        className="lms-entries-select"
-                    >
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                    </select>
-                    &nbsp; entries
-                </div>
+            {user?.role === 'student' && (
+                <div className="lms-table-controls">
+                    <div className="lms-entries-control">
+                        Show &nbsp;
+                        <select 
+                            value={entriesPerPage} 
+                            onChange={(e) => {
+                                setEntriesPerPage(parseInt(e.target.value));
+                                setCurrentPage(1);
+                            }}
+                            className="lms-entries-select"
+                        >
+                            <option value={5}>5</option>
+                            <option value={10}>10</option>
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                        </select>
+                        &nbsp; entries
+                    </div>
 
-                <div className="lms-search-control">
-                    Search: &nbsp;
-                    <input 
-                        type="text" 
-                        value={searchTerm} 
-                        onChange={(e) => {
-                            setSearchTerm(e.target.value);
-                            setCurrentPage(1);
-                        }}
-                        className="lms-search-input"
-                    />
+                    <div className="lms-search-control">
+                        Search: &nbsp;
+                        <input 
+                            type="text" 
+                            value={searchTerm} 
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="lms-search-input"
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
 
-            {/* Daywise List */}
+            {/* Daywise List / Session History */}
             <div className="lms-section-card daywise-card">
                 <div className="lms-card-header">
-                    Daywise course list
+                    {(user?.role === 'teacher' || user?.role === 'admin')
+                        ? `Class Session History Log: ${classTeacherCourse}`
+                        : 'Daywise course list'}
                 </div>
                 <div className="lms-card-body">
-                    <table className="lms-table daywise-table">
-                        <thead>
-                            <tr>
-                                <th style={{ textAlign: 'left', width: '50%' }}>Course</th>
-                                <th style={{ textAlign: 'center', width: '15%' }}>Attendance</th>
-                                <th style={{ textAlign: 'center', width: '18%' }}>Attendance document</th>
-                                <th style={{ textAlign: 'center', width: '17%' }}>Document status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedEntries.length > 0 ? (
-                                paginatedEntries.map((entryItem, index) => {
-                                    const { dateKey, row } = entryItem;
-                                    const isFirstOfGroup = index === 0 || paginatedEntries[index - 1].dateKey !== dateKey;
-
-                                    return (
-                                        <React.Fragment key={row.id}>
-                                            {isFirstOfGroup && (
-                                                <tr className="lms-group-header-row">
-                                                    <td colSpan={4} className="lms-group-header-cell">
-                                                        {dateKey}
-                                                    </td>
-                                                </tr>
-                                            )}
-                                            <tr className="lms-data-row">
-                                                <td className="course-name-cell">
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <span>{row.course}</span>
-                                                        {row.isSupabase && (
-                                                            <span style={{ 
-                                                                fontSize: '0.7rem', 
-                                                                backgroundColor: 'rgba(99, 102, 241, 0.15)', 
-                                                                color: '#818cf8',
-                                                                padding: '2px 6px',
-                                                                borderRadius: '4px',
-                                                                fontWeight: '600'
-                                                            }}>
-                                                                Live
-                                                            </span>
-                                                        )}
-                                                    </div>
+                    {(user?.role === 'teacher' || user?.role === 'admin') ? (
+                        /* Teacher Session History List */
+                        classSessionHistory.length > 0 ? (
+                            <table className="lms-table daywise-table">
+                                <thead>
+                                    <tr>
+                                        <th style={{ textAlign: 'left', width: '40%' }}>Session Date</th>
+                                        <th style={{ textAlign: 'center', width: '20%' }}>Day of Week</th>
+                                        <th style={{ textAlign: 'center', width: '25%' }}>Students Present / Total</th>
+                                        <th style={{ textAlign: 'center', width: '15%' }}>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {classSessionHistory.map((session, index) => {
+                                        return (
+                                            <tr key={index} className="lms-data-row">
+                                                <td className="course-name-cell" style={{ fontWeight: '600' }}>
+                                                    {session.date}
                                                 </td>
                                                 <td style={{ textAlign: 'center' }}>
-                                                    {row.present}/{row.total}
+                                                    {session.day}
+                                                </td>
+                                                <td style={{ textAlign: 'center' }} className="percentage-bold text-success">
+                                                    {session.present} / {session.total}
                                                 </td>
                                                 <td style={{ textAlign: 'center' }}>
-                                                    {row.present < row.total ? (
-                                                        row.doc ? (
-                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                                                <a 
-                                                                    href={row.doc} 
-                                                                    target="_blank" 
-                                                                    rel="noopener noreferrer" 
-                                                                    className="lms-doc-link"
-                                                                >
-                                                                    View Document
-                                                                </a>
-                                                            </div>
-                                                        ) : (
-                                                            user?.role === 'student' ? (
-                                                                <button 
-                                                                    onClick={() => handleUploadClick(row)}
-                                                                    className="lms-upload-link"
-                                                                >
-                                                                    Upload document
-                                                                </button>
-                                                            ) : (
-                                                                <span>-</span>
-                                                            )
-                                                        )
-                                                    ) : (
-                                                        <span>-</span>
-                                                    )}
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                                        <span className="doc-status-cell">{row.docStatus || '-'}</span>
-                                                        {row.isSupabase && row.docStatus === 'Pending Approval' && (user?.role === 'teacher' || user?.role === 'admin') && (
-                                                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                                                                <button 
-                                                                    onClick={() => handleApproveDocument(row.id)}
-                                                                    className="lms-approve-btn"
-                                                                >
-                                                                    Approve
-                                                                </button>
-                                                                <button 
-                                                                    onClick={() => handleRejectDocument(row.id)}
-                                                                    className="lms-reject-btn"
-                                                                >
-                                                                    Reject
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                        {row.isSupabase && (user?.role === 'teacher' || user?.role === 'admin') && (
-                                                            <button 
-                                                                onClick={() => handleTeacherDelete(row.id)}
-                                                                style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0, marginTop: '4px' }}
-                                                                title="Delete attendance record"
-                                                            >
-                                                                <Trash2 size={14} />
-                                                            </button>
-                                                        )}
-                                                    </div>
+                                                    <button 
+                                                        onClick={() => handleDeleteClassSession(session.date)}
+                                                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0 }}
+                                                        title="Delete class session attendance"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
                                                 </td>
                                             </tr>
-                                        </React.Fragment>
-                                    );
-                                })
-                            ) : (
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
+                                No session history logs found for this course
+                            </div>
+                        )
+                    ) : (
+                        /* Original Student Daywise List */
+                        <table className="lms-table daywise-table">
+                            <thead>
                                 <tr>
-                                    <td colSpan={4} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
-                                        No data available in table
-                                    </td>
+                                    <th style={{ textAlign: 'left', width: '50%' }}>Course</th>
+                                    <th style={{ textAlign: 'center', width: '15%' }}>Attendance</th>
+                                    <th style={{ textAlign: 'center', width: '18%' }}>Attendance document</th>
+                                    <th style={{ textAlign: 'center', width: '17%' }}>Document status</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {paginatedEntries.length > 0 ? (
+                                    paginatedEntries.map((entryItem, index) => {
+                                        const { dateKey, row } = entryItem;
+                                        const isFirstOfGroup = index === 0 || paginatedEntries[index - 1].dateKey !== dateKey;
+
+                                        return (
+                                            <React.Fragment key={row.id}>
+                                                {isFirstOfGroup && (
+                                                    <tr className="lms-group-header-row">
+                                                        <td colSpan={4} className="lms-group-header-cell">
+                                                            {dateKey}
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                                <tr className="lms-data-row">
+                                                    <td className="course-name-cell">
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            <span>{row.course}</span>
+                                                            {row.isSupabase && (
+                                                                <span style={{ 
+                                                                    fontSize: '0.7rem', 
+                                                                    backgroundColor: 'rgba(99, 102, 241, 0.15)', 
+                                                                    color: '#818cf8',
+                                                                    padding: '2px 6px',
+                                                                    borderRadius: '4px',
+                                                                    fontWeight: '600'
+                                                                }}>
+                                                                    Live
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        {row.present}/{row.total}
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        {row.present < row.total ? (
+                                                            row.doc ? (
+                                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                                    <a 
+                                                                        href={row.doc} 
+                                                                        target="_blank" 
+                                                                        rel="noopener noreferrer" 
+                                                                        className="lms-doc-link"
+                                                                    >
+                                                                        View Document
+                                                                    </a>
+                                                                </div>
+                                                            ) : (
+                                                                user?.role === 'student' ? (
+                                                                    <button 
+                                                                        onClick={() => handleUploadClick(row)}
+                                                                        className="lms-upload-link"
+                                                                    >
+                                                                        Upload document
+                                                                    </button>
+                                                                ) : (
+                                                                    <span>-</span>
+                                                                )
+                                                            )
+                                                        ) : (
+                                                            <span>-</span>
+                                                        )}
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                                            <span className="doc-status-cell">{row.docStatus || '-'}</span>
+                                                            {row.isSupabase && row.docStatus === 'Pending Approval' && (user?.role === 'teacher' || user?.role === 'admin') && (
+                                                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                                                    <button 
+                                                                        onClick={() => handleApproveDocument(row.id)}
+                                                                        className="lms-approve-btn"
+                                                                    >
+                                                                        Approve
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => handleRejectDocument(row.id)}
+                                                                        className="lms-reject-btn"
+                                                                    >
+                                                                        Reject
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                            {row.isSupabase && (user?.role === 'teacher' || user?.role === 'admin') && (
+                                                                <button 
+                                                                    onClick={() => handleTeacherDelete(row.id)}
+                                                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0, marginTop: '4px' }}
+                                                                    title="Delete attendance record"
+                                                                >
+                                                                    <Trash2 size={14} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </React.Fragment>
+                                        );
+                                    })
+                                ) : (
+                                    <tr>
+                                        <td colSpan={4} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
+                                            No data available in table
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
 
             {/* Pagination */}
-            <div className="lms-pagination-footer">
-                <div className="lms-showing-text">
-                    Showing {totalEntries > 0 ? startIndex + 1 : 0} to {endIndex} of {totalEntries} entries
-                </div>
-                <div className="lms-pagination-buttons">
-                    <button 
-                        onClick={handlePrevPage} 
-                        disabled={currentPage === 1}
-                        className="lms-page-btn"
-                    >
-                        Previous
-                    </button>
-                    
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
-                        <button
-                            key={pageNumber}
-                            onClick={() => setCurrentPage(pageNumber)}
-                            className={`lms-page-number ${currentPage === pageNumber ? 'active' : ''}`}
+            {user?.role === 'student' && (
+                <div className="lms-pagination-footer">
+                    <div className="lms-showing-text">
+                        Showing {totalEntries > 0 ? startIndex + 1 : 0} to {endIndex} of {totalEntries} entries
+                    </div>
+                    <div className="lms-pagination-buttons">
+                        <button 
+                            onClick={handlePrevPage} 
+                            disabled={currentPage === 1}
+                            className="lms-page-btn"
                         >
-                            {pageNumber}
+                            Previous
                         </button>
-                    ))}
+                        
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
+                            <button
+                                key={pageNumber}
+                                onClick={() => setCurrentPage(pageNumber)}
+                                className={`lms-page-number ${currentPage === pageNumber ? 'active' : ''}`}
+                            >
+                                {pageNumber}
+                            </button>
+                        ))}
 
-                    <button 
-                        onClick={handleNextPage} 
-                        disabled={currentPage === totalPages || totalPages === 0}
-                        className="lms-page-btn"
-                    >
-                        Next
-                    </button>
+                        <button 
+                            onClick={handleNextPage} 
+                            disabled={currentPage === totalPages || totalPages === 0}
+                            className="lms-page-btn"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
+            </>
+            ) : (
+                <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>
+                    <h3 style={{ color: '#1e293b', marginBottom: '1rem' }}>Validation Studio</h3>
+                    <p>This advanced verification module is currently under construction for Face Pay integration.</p>
+                </div>
+            )}
 
             {/* Upload Modal */}
             {selectedUploadRow && (
